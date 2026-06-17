@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>数据城市 · 现实驱动 · 未来演化模拟器</title>
+<title>Data City · Reality-Driven · Future Evolution Simulator</title>
 <link rel="manifest" href="manifest.webmanifest" />
 <meta name="theme-color" content="#0a0e16" />
 <link rel="icon" type="image/png" href="icon-192.png" />
@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="apple-mobile-web-app-title" content="数据城市" />
+<meta name="apple-mobile-web-app-title" content="Data City" />
 <script>if('serviceWorker' in navigator)addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});</script>
 <style>
   :root{ --panel:rgba(13,19,28,0.74); --bd:rgba(255,255,255,0.12); --acc:#5fd0ff; --good:#56e08a; --bad:#ff7a7a; --warn:#ffcf6b; --text:#e9f3ff; }
@@ -92,7 +92,9 @@
   .cit-act{ display:grid; grid-template-columns:1fr 1fr; gap:5px; }
   #ghint{ position:absolute; bottom:86px; left:50%; transform:translateX(-50%); display:none; background:var(--panel); border:1px solid var(--bd); border-radius:9px; padding:7px 14px; font-size:12px; backdrop-filter:blur(8px); pointer-events:none; white-space:nowrap; }
   #eprompt{ position:absolute; bottom:130px; left:50%; transform:translateX(-50%); display:none; background:rgba(95,208,255,.22); border:1px solid rgba(95,208,255,.55); color:#eaf6ff; border-radius:10px; padding:9px 16px; font-size:14px; font-weight:700; letter-spacing:1px; backdrop-filter:blur(8px); pointer-events:none; white-space:nowrap; box-shadow:0 4px 18px rgba(0,0,0,.3); }
-  #goalTracker{ position:absolute; top:13px; left:50%; transform:translateX(-50%); display:none; background:var(--panel); border:1px solid rgba(95,208,255,.4); border-radius:11px; padding:7px 16px; font-size:13.5px; font-weight:700; backdrop-filter:blur(8px); text-align:center; box-shadow:0 4px 18px rgba(0,0,0,.3); }
+  #goalTracker{ position:absolute; top:50px; left:50%; transform:translateX(-50%); display:none; background:var(--panel); border:1px solid rgba(95,208,255,.4); border-radius:11px; padding:7px 16px; font-size:13.5px; font-weight:700; backdrop-filter:blur(8px); text-align:center; box-shadow:0 4px 18px rgba(0,0,0,.3); }
+  #langToggle{ position:absolute; top:11px; left:50%; transform:translateX(-50%); z-index:24; display:flex; gap:6px; align-items:center; padding:5px 13px; font-size:12.5px; pointer-events:auto; cursor:pointer; user-select:none; }
+  #langToggle b{ font-weight:600; opacity:.5; } #langToggle b.on{ opacity:1; color:var(--acc); } #langToggle span{ opacity:.3; }
   #goals{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); display:none; z-index:16; padding:18px 20px; width:312px; pointer-events:auto; }
   #goals h3{ font-size:16px; margin-bottom:12px; text-align:center; }
   #goals .g{ background:rgba(255,255,255,.06); border:1px solid var(--bd); border-radius:10px; padding:10px 12px; margin-bottom:8px; cursor:pointer; transition:.12s; }
@@ -131,74 +133,75 @@
 </head>
 <body>
   <div id="ui">
+    <div id="langToggle" class="panel"></div>
     <div id="live" class="panel">
-      <h3><span id="liveDot" class="dot"></span> 现实世界数据</h3>
-      <div class="row"><span class="k">📍 城市</span><span class="v" id="vCity">定位中…</span></div>
-      <div class="row"><span class="k">👥 真实人口</span><span class="v" id="vRealPop">—</span></div>
-      <div class="row"><span class="k">🕐 现实时间</span><span class="v" id="vTime">--:--:--</span></div>
-      <div class="row"><span class="k">🌤 天气</span><span class="v" id="vWeather">—</span></div>
-      <div class="row"><span class="k">🌡 气温</span><span class="v" id="vTemp">—</span></div>
-      <div class="row"><span class="k">💨 空气 AQI</span><span class="v" id="vAqi">—</span></div>
-      <div class="row"><span class="k">💱 美元/人民币</span><span class="v" id="vFx">—</span></div>
-      <div class="row"><span class="k">₿ 比特币</span><span class="v" id="vBtc">—</span></div>
-      <div class="row"><span class="k">🌍 最近地震</span><span class="v" id="vQuake">—</span></div>
-      <div id="cityInput"><input id="cityName" placeholder="输入城市名切换…" /><button id="cityGo">定位</button></div>
+      <h3><span id="liveDot" class="dot"></span> <span data-i18n="live_title">Live World Data</span></h3>
+      <div class="row"><span class="k" data-i18n="live_city">📍 City</span><span class="v" id="vCity" data-i18n="locating">Locating…</span></div>
+      <div class="row"><span class="k" data-i18n="live_pop">👥 Real Population</span><span class="v" id="vRealPop">—</span></div>
+      <div class="row"><span class="k" data-i18n="live_time">🕐 Real Time</span><span class="v" id="vTime">--:--:--</span></div>
+      <div class="row"><span class="k" data-i18n="live_weather">🌤 Weather</span><span class="v" id="vWeather">—</span></div>
+      <div class="row"><span class="k" data-i18n="live_temp">🌡 Temp</span><span class="v" id="vTemp">—</span></div>
+      <div class="row"><span class="k" data-i18n="live_aqi">💨 Air AQI</span><span class="v" id="vAqi">—</span></div>
+      <div class="row"><span class="k" data-i18n="live_fx">💱 USD/CNY</span><span class="v" id="vFx">—</span></div>
+      <div class="row"><span class="k" data-i18n="live_btc">₿ Bitcoin</span><span class="v" id="vBtc">—</span></div>
+      <div class="row"><span class="k" data-i18n="live_quake">🌍 Latest Quake</span><span class="v" id="vQuake">—</span></div>
+      <div id="cityInput"><input id="cityName" data-i18n-ph="city_ph" placeholder="Type a city name…" /><button id="cityGo" data-i18n="btn_locate">Go</button></div>
     </div>
 
     <div id="stats" class="panel">
-      <div id="year">城市纪年</div>
-      <div id="yearBig">公元 ----</div>
-      <div><span id="era">当代</span></div>
-      <div class="row" style="border:0;padding:0 0 3px"><span class="k">👥 人口</span><span class="v" id="vPop">—</span></div>
-      <div class="row" style="border:0;padding:0 0 6px"><span class="k">💰 市库</span><span class="v" id="vTreasury">—</span></div>
-      <div class="stat"><div class="lab"><span>📈 经济指数</span><b id="vEco">100</b></div><div class="bar"><i id="bEco" style="width:50%;background:var(--good)"></i></div></div>
-      <div class="stat"><div class="lab"><span>🔬 科技</span><b id="vTech">0%</b></div><div class="bar"><i id="bTech" style="width:0%;background:#9a7bff"></i></div></div>
-      <div class="stat"><div class="lab"><span>🏭 污染</span><b id="vPol">—</b></div><div class="bar"><i id="bPol" style="width:30%;background:var(--warn)"></i></div></div>
-      <div class="stat"><div class="lab"><span>😊 幸福度</span><b id="vHap">—</b></div><div class="bar"><i id="bHap" style="width:70%;background:var(--acc)"></i></div></div>
-      <div class="stat"><div class="lab"><span>⚡ 清洁能源</span><b id="vGreen">—</b></div><div class="bar"><i id="bGreen" style="width:20%;background:#5fe0b0"></i></div></div>
+      <div id="year" data-i18n="stats_year">City Era</div>
+      <div id="yearBig">AD ----</div>
+      <div><span id="era">Present</span></div>
+      <div class="row" style="border:0;padding:0 0 3px"><span class="k" data-i18n="pop">👥 Population</span><span class="v" id="vPop">—</span></div>
+      <div class="row" style="border:0;padding:0 0 6px"><span class="k" data-i18n="treasury">💰 Treasury</span><span class="v" id="vTreasury">—</span></div>
+      <div class="stat"><div class="lab"><span data-i18n="eco_idx">📈 Economy</span><b id="vEco">100</b></div><div class="bar"><i id="bEco" style="width:50%;background:var(--good)"></i></div></div>
+      <div class="stat"><div class="lab"><span data-i18n="tech">🔬 Tech</span><b id="vTech">0%</b></div><div class="bar"><i id="bTech" style="width:0%;background:#9a7bff"></i></div></div>
+      <div class="stat"><div class="lab"><span data-i18n="pollution">🏭 Pollution</span><b id="vPol">—</b></div><div class="bar"><i id="bPol" style="width:30%;background:var(--warn)"></i></div></div>
+      <div class="stat"><div class="lab"><span data-i18n="happiness">😊 Happiness</span><b id="vHap">—</b></div><div class="bar"><i id="bHap" style="width:70%;background:var(--acc)"></i></div></div>
+      <div class="stat"><div class="lab"><span data-i18n="clean_energy">⚡ Clean Energy</span><b id="vGreen">—</b></div><div class="bar"><i id="bGreen" style="width:20%;background:#5fe0b0"></i></div></div>
       <div class="svc">
-        <div class="sv">⚡<b id="svPower">—</b><span class="nm">电力</span></div>
-        <div class="sv">💼<b id="svJob">—</b><span class="nm">就业</span></div>
-        <div class="sv">🏥<b id="svHealth">—</b><span class="nm">医疗</span></div>
-        <div class="sv">🎓<b id="svEdu">—</b><span class="nm">教育</span></div>
-        <div class="sv">🚦<b id="svTraffic">—</b><span class="nm">交通</span></div>
+        <div class="sv">⚡<b id="svPower">—</b><span class="nm" data-i18n="svc_power">Power</span></div>
+        <div class="sv">💼<b id="svJob">—</b><span class="nm" data-i18n="svc_job">Jobs</span></div>
+        <div class="sv">🏥<b id="svHealth">—</b><span class="nm" data-i18n="svc_health">Health</span></div>
+        <div class="sv">🎓<b id="svEdu">—</b><span class="nm" data-i18n="svc_edu">Edu</span></div>
+        <div class="sv">🚦<b id="svTraffic">—</b><span class="nm" data-i18n="svc_traffic">Traffic</span></div>
       </div>
     </div>
 
     <div id="console" class="panel">
-      <div class="btn" id="cPlay"><span class="ic" id="playIc">⏸</span>暂停</div>
-      <div class="btn" id="cSpeed"><span class="ic" id="speed">1×</span>速度</div>
-      <div class="btn" id="cGoals"><span class="ic">🎯</span>目标</div>
-      <div class="btn" id="cGround"><span class="ic">👣</span>进入地面</div>
-      <div class="btn" id="cMap"><span class="ic">🗺️</span>数据图</div>
-      <div class="btn" id="cAI"><span class="ic">🤖</span>AI对话</div>
-      <div class="btn" id="cSound"><span class="ic">🔊</span>声音</div>
-      <div class="btn" id="cSave"><span class="ic">💾</span>保存</div>
-      <div class="btn" id="cLoad"><span class="ic">📂</span>读取</div>
-      <div class="btn" id="cShot"><span class="ic">📷</span>快照</div>
-      <div class="btn" id="cQual"><span class="ic">⚙️</span>画质高</div>
+      <div class="btn" id="cPlay"><span class="ic" id="playIc">⏸</span><span data-i18n="c_pause">Pause</span></div>
+      <div class="btn" id="cSpeed"><span class="ic" id="speed">1×</span><span data-i18n="c_speed">Speed</span></div>
+      <div class="btn" id="cGoals"><span class="ic">🎯</span><span data-i18n="c_goals">Goals</span></div>
+      <div class="btn" id="cGround"><span class="ic">👣</span><span data-i18n="c_ground">Go Down</span></div>
+      <div class="btn" id="cMap"><span class="ic">🗺️</span><span data-i18n="c_map">Data Map</span></div>
+      <div class="btn" id="cAI"><span class="ic">🤖</span><span data-i18n="c_ai">AI Chat</span></div>
+      <div class="btn" id="cSound"><span class="ic">🔊</span><span data-i18n="c_sound">Sound</span></div>
+      <div class="btn" id="cSave"><span class="ic">💾</span><span data-i18n="c_save">Save</span></div>
+      <div class="btn" id="cLoad"><span class="ic">📂</span><span data-i18n="c_load">Load</span></div>
+      <div class="btn" id="cShot"><span class="ic">📷</span><span data-i18n="c_shot">Snapshot</span></div>
+      <div class="btn" id="cQual"><span class="ic">⚙️</span><span data-i18n="c_qual">Quality</span></div>
       <div class="sep"></div>
-      <div class="btn build" data-build="hospital"><span class="ic">🏥</span>+医院</div>
-      <div class="btn build" data-build="school"><span class="ic">🎓</span>+学校</div>
-      <div class="btn build" data-build="factory"><span class="ic">🏭</span>+工厂</div>
-      <div class="btn build" data-build="power"><span class="ic">⚡</span>+电厂</div>
-      <div class="btn build" data-build="wind"><span class="ic">🍃</span>+风电</div>
-      <div class="btn build" data-build="park"><span class="ic">🌳</span>+公园</div>
+      <div class="btn build" data-build="hospital"><span class="ic">🏥</span><span data-i18n="b_hospital">+Hospital</span></div>
+      <div class="btn build" data-build="school"><span class="ic">🎓</span><span data-i18n="b_school">+School</span></div>
+      <div class="btn build" data-build="factory"><span class="ic">🏭</span><span data-i18n="b_factory">+Factory</span></div>
+      <div class="btn build" data-build="power"><span class="ic">⚡</span><span data-i18n="b_power">+Power</span></div>
+      <div class="btn build" data-build="wind"><span class="ic">🍃</span><span data-i18n="b_wind">+Wind</span></div>
+      <div class="btn build" data-build="park"><span class="ic">🌳</span><span data-i18n="b_park">+Park</span></div>
       <div class="sep"></div>
-      <div class="btn" data-act="green"><span class="ic">🌱</span>环保</div>
-      <div class="btn" data-act="eco"><span class="ic">💰</span>经济</div>
-      <div class="btn" data-act="tech"><span class="ic">🔬</span>科技</div>
-      <div class="btn" data-act="shield"><span class="ic">🛡</span>防灾</div>
+      <div class="btn" data-act="green"><span class="ic">🌱</span><span data-i18n="p_green">Green</span></div>
+      <div class="btn" data-act="eco"><span class="ic">💰</span><span data-i18n="p_eco">Economy</span></div>
+      <div class="btn" data-act="tech"><span class="ic">🔬</span><span data-i18n="p_tech">Tech</span></div>
+      <div class="btn" data-act="shield"><span class="ic">🛡</span><span data-i18n="p_shield">Defense</span></div>
       <div class="sep"></div>
-      <div class="btn" id="cQuake"><span class="ic">⚠️</span>模拟灾害</div>
+      <div class="btn" id="cQuake"><span class="ic">⚠️</span><span data-i18n="c_quake">Disaster</span></div>
     </div>
 
     <div id="log"></div>
     <div id="toast"></div>
-    <div id="ghint">WASD 移动 · Shift 奔跑 · 拖动鼠标转视角 · 点击任意市民可选择与干预 · 走到门口按 E 进出建筑</div>
+    <div id="ghint" data-i18n="ghint">WASD move · Shift run · drag to look · click any citizen to select & intervene · press E at a door to enter/exit</div>
     <div id="eprompt"></div>
     <div id="goalTracker"></div>
-    <div id="goals" class="panel"><h3>🎯 选择一个目标</h3><div id="goalList"></div></div>
+    <div id="goals" class="panel"><h3 data-i18n="goals_pick">🎯 Choose a Goal</h3><div id="goalList"></div></div>
     <div id="radarWrap"><canvas id="radar" width="120" height="120"></canvas></div>
     <div id="vitals">
       <div class="vit"><i style="color:#ff6a6a">❤</i><div class="vbar"><span id="vHp" style="width:70%;background:#ff6a6a"></span></div></div>
@@ -206,37 +209,37 @@
       <div class="vit"><i style="color:#ffcf6b">🍖</i><div class="vbar"><span id="vHun" style="width:60%;background:#ffcf6b"></span></div></div>
       <div id="vMoney">$0</div>
     </div>
-    <div id="toolName">公园</div>
+    <div id="toolName">Park</div>
     <div id="hotbar"></div>
-    <div id="modeTag">模式 <b>创造</b></div>
+    <div id="modeTag">Mode <b>Creative</b></div>
     <div id="crosshair"></div>
     <div id="wheel"></div>
-    <div id="map"><div id="mapHint">点击地图设置路点 · 按 M 关闭</div><span id="mapClose">✕</span><canvas id="mapCanvas" width="520" height="520"></canvas></div>
+    <div id="map"><div id="mapHint" data-i18n="map_hint">Click the map to set a waypoint · press M to close</div><span id="mapClose">✕</span><canvas id="mapCanvas" width="520" height="520"></canvas></div>
     <div id="cit" class="panel">
       <div class="cit-h"><span id="citName">—</span><span id="citClose">✕</span></div>
       <div class="cit-j" id="citJobV">—</div>
       <div class="cit-s" id="citState">—</div>
       <div class="cit-n" id="citNeeds"></div>
-      <div id="citSend" class="cit-send"><button data-go="home">回家</button><button data-go="work">上班</button><button data-go="food">餐厅</button><button data-go="leisure">公园</button></div>
-      <div class="cit-act"><button id="citPossess">🎮 附身操控</button><button id="citTalk">💬 交谈</button><button id="citMoney">💵 给钱</button><button id="citJob">💼 换工作</button><button id="citMood">😊 鼓励</button></div>
+      <div id="citSend" class="cit-send"><button data-go="home" data-i18n="go_home">Home</button><button data-go="work" data-i18n="go_work">Work</button><button data-go="food" data-i18n="go_food">Eat</button><button data-go="leisure" data-i18n="go_leisure">Park</button></div>
+      <div class="cit-act"><button id="citPossess" data-i18n="act_possess">🎮 Possess</button><button id="citTalk" data-i18n="act_talk">💬 Talk</button><button id="citMoney" data-i18n="act_money">💵 Give $</button><button id="citJob" data-i18n="act_job">💼 New Job</button><button id="citMood" data-i18n="act_mood">😊 Cheer</button></div>
     </div>
   </div>
 
   <div id="overlay">
     <div class="card">
-      <h1>数据城市 · 未来演化</h1>
-      <p>用<b>你所在城市的真实天气、空气、地震与经济数据</b>为起点，建起一座拥有完整基建的城市，<br/>看它自动演化向未来——你可以随时干预，亲手建设。</p>
-      <div class="feat">🏙 商务/住宅/工业分区　🏥 医院 🎓 学校 🏟 体育场 ⚡ 电厂 📡 地标<br/>🌉 河流桥梁　🛣 高架环路　🚄 铁路列车　✈️ 机场　🍃 风电光伏　💡 路灯<br/>📊 电力·就业·医疗·教育·交通 五大系统接入模拟</div>
-      <div class="start" id="startBtn">▶ 建立城市</div>
+      <h1 data-i18n="ov_title">Data City · Evolving Future</h1>
+      <p data-i18n-html="ov_intro">Start from <b>the real weather, air, earthquakes and economy of your city</b>, build a fully-equipped metropolis,<br/>and watch it evolve toward the future — intervene anytime and build it yourself.</p>
+      <div class="feat" data-i18n-html="ov_feat">🏙 Commercial / residential / industrial zones　🏥 Hospital 🎓 School 🏟 Stadium ⚡ Power 📡 Landmark<br/>🌉 Rivers & bridges　🛣 Elevated ring road　🚄 Railway & trains　✈️ Airport　🍃 Wind & solar　💡 Street lights<br/>📊 Power · Jobs · Health · Education · Traffic — five systems wired into the simulation</div>
+      <div class="start" id="startBtn" data-i18n="ov_start">▶ Found the City</div>
       <div id="loadnote"></div>
-      <div class="tip">需要联网加载 3D 引擎与实时数据。定位被拒绝时使用默认城市，可在左下角切换。若黑屏请用本地服务器打开（见 README）。</div>
+      <div class="tip" data-i18n="ov_tip">Needs the internet to load the 3D engine and live data. If location is denied it uses a default city — switch it bottom-left. If the screen is black, open it via a local server (see README).</div>
     </div>
   </div>
 
   <div id="err"><div class="box panel">
-    <h2 style="margin-bottom:12px">😕 引擎加载失败</h2>
-    <p>无法从网络加载 3D 引擎。请检查网络，或在该文件夹启动本地服务器：</p>
-    <p style="margin-top:12px"><code>python3 -m http.server 8000</code> → 打开 <code>http://localhost:8000/city.html</code></p>
+    <h2 style="margin-bottom:12px" data-i18n="err_title">😕 Engine failed to load</h2>
+    <p data-i18n="err_p">Could not load the 3D engine from the network. Check your connection, or start a local server in this folder:</p>
+    <p style="margin-top:12px"><code>python3 -m http.server 8000</code> <span data-i18n="err_open">→ open</span> <code>http://localhost:8000/city.html</code></p>
   </div></div>
 
   <script>
@@ -262,17 +265,261 @@
 
   /* ============ 数据城市 v2 · 现实驱动 · 完整基建 · 未来演化 ============ */
   const N = 24, CELL = 5, HALF = (N - 1) / 2, SPAN = N * CELL;
-  const ERAS = ['当代', '近未来', '未来都市', '超未来'];
+  const eraName = i => tarr('eras')[i];
   const $ = id => document.getElementById(id);
   const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
   const lerp = (a,b,t)=>a+(b-a)*t;
   const rand = (a,b)=>a+Math.random()*(b-a);
   const pick = arr => arr[Math.floor(Math.random()*arr.length)];
-  const fmt = n => n>=1e8?(n/1e8).toFixed(2)+'亿':n>=1e4?(n/1e4).toFixed(1)+'万':Math.round(n).toLocaleString();
+
+  /* ================= i18n · English default + 中文 toggle ================= */
+  let LANG = (()=>{ try{ return localStorage.getItem('dc_lang')||'en'; }catch(e){ return 'en'; } })();
+  const I18N = {
+    en: {
+      title:'Data City · Reality-Driven · Future Evolution Simulator', appname:'Data City',
+      live_title:'Live World Data', live_city:'📍 City', locating:'Locating…', live_pop:'👥 Real Population',
+      live_time:'🕐 Real Time', live_weather:'🌤 Weather', live_temp:'🌡 Temp', live_aqi:'💨 Air AQI',
+      live_fx:'💱 USD/CNY', live_btc:'₿ Bitcoin', live_quake:'🌍 Latest Quake', city_ph:'Type a city name…', btn_locate:'Go',
+      stats_year:'City Era', pop:'👥 Population', treasury:'💰 Treasury', eco_idx:'📈 Economy', tech:'🔬 Tech',
+      pollution:'🏭 Pollution', happiness:'😊 Happiness', clean_energy:'⚡ Clean Energy',
+      svc_power:'Power', svc_job:'Jobs', svc_health:'Health', svc_edu:'Edu', svc_traffic:'Traffic',
+      c_pause:'Pause', c_resume:'Resume', c_speed:'Speed', c_goals:'Goals', c_ground:'Go Down', c_god:'God View',
+      c_map:'Data Map', c_ai:'AI Chat', c_sound:'Sound', c_save:'Save', c_load:'Load', c_shot:'Snapshot', c_qual:'Quality',
+      b_hospital:'+Hospital', b_school:'+School', b_factory:'+Factory', b_power:'+Power', b_wind:'+Wind', b_park:'+Park',
+      p_green:'Green', p_eco:'Economy', p_tech:'Tech', p_shield:'Defense', c_quake:'Disaster',
+      go_home:'Home', go_work:'Work', go_food:'Eat', go_leisure:'Park',
+      act_possess:'🎮 Possess', act_talk:'💬 Talk', act_money:'💵 Give $', act_job:'💼 New Job', act_mood:'😊 Cheer',
+      ghint:'WASD move · Shift run · drag to look · click any citizen to select & intervene · press E at a door to enter/exit',
+      goals_pick:'🎯 Choose a Goal', map_hint:'Click the map to set a waypoint · press M to close',
+      ov_title:'Data City · Evolving Future',
+      ov_intro:'Start from <b>the real weather, air, earthquakes and economy of your city</b>, build a fully-equipped metropolis,<br/>and watch it evolve toward the future — intervene anytime and build it yourself.',
+      ov_feat:'🏙 Commercial / residential / industrial zones　🏥 Hospital 🎓 School 🏟 Stadium ⚡ Power 📡 Landmark<br/>🌉 Rivers & bridges　🛣 Elevated ring road　🚄 Railway & trains　✈️ Airport　🍃 Wind & solar　💡 Street lights<br/>📊 Power · Jobs · Health · Education · Traffic — five systems wired into the simulation',
+      ov_start:'▶ Found the City',
+      ov_tip:'Needs the internet to load the 3D engine and live data. If location is denied it uses a default city — switch it bottom-left. If the screen is black, open it via a local server (see README).',
+      err_title:'😕 Engine failed to load', err_p:'Could not load the 3D engine from the network. Check your connection, or start a local server in this folder:',
+      err_open:'→ open', lang_name:'EN',
+      eras:['Present','Near Future','Future Metropolis','Hyper Future'],
+      weather:{clear:'☀️ Clear',clouds:'⛅ Cloudy',rain:'🌧 Rain',snow:'❄️ Snow',fog:'🌫 Fog',storm:'⛈ Storm'},
+      aqi:['Good','Fair','Moderate','Poor','Very Poor'], quake_calm:'Calm',
+      traffic:['Smooth','Moderate','Jam'],
+      needLabels:['Energy','Food','Social','Fun','Wealth'],
+      needDrive:{energy:'energy',fullness:'food',social:'company',fun:'fun',money:'money',comfort:'rest'},
+      states:{sleep:'Sleeping',eatout:'Eating out',eathome:'Eating in',work:'Working',shop:'Shopping',relax:'Relaxing',home:'At home',goto:'On the way'},
+      st_school:'At school', cmd_order:'your order',
+      jobGeneric:['Clerk','Engineer','Manager','Designer','Programmer','Accountant','Sales rep'],
+      jobDoctor:['Doctor','Nurse'], jobWorker:['Worker','Technician'],
+      job_free:'Freelancer', job_teacher:'Teacher', job_power:'Plant technician', job_comm:'Comms engineer', job_venue:'Venue staff', job_student:'Student', job_child:'Child',
+      surnames:['Smith','Johnson','Williams','Brown','Jones','Garcia','Miller','Davis','Wilson','Martinez','Lee','Walker','Hall','Allen','Young','King','Wright','Lopez','Hill','Adams'],
+      givens:['James','Mary','John','Patricia','Robert','Jennifer','Michael','Linda','David','Sarah','Emma','Olivia','Liam','Noah','Ava','Sophia','Lucas','Mia','Ethan','Grace','Henry','Chloe','Jack','Lily','Leo','Zoe','Owen','Ella','Max','Nora'],
+      place_park:'Park', your_location:'your location',
+      lifegoals:['buy a home','get a promotion','find a partner','open a shop','travel the world','become famous'],
+      mapmodes:['Off','Pollution','Land value'], qualities:{high:'High',mid:'Medium',low:'Low'},
+      goalDefs:{ livable:{name:'Livable City',desc:'Reach happiness ≥ 90 within 30 years',prog:s=>'Happiness '+Math.round(s.happiness)+' / 90'},
+        carbon:{name:'Carbon Neutral',desc:'Pollution ≤10 & clean energy ≥80% within 30 years',prog:s=>'Pollution '+Math.round(s.pollution)+'/≤10 · Clean '+Math.round(s.green*100)+'%/80%'},
+        metro:{name:'Metropolis',desc:'Grow population 50% within 40 years',prog:s=>'Population '+fmt(s.population)+' / '+fmt(goalBasePop*1.5)},
+        rich:{name:'Prosperity',desc:'Reach economy ≥ 160 within 30 years',prog:s=>'Economy '+Math.round(s.economy)+' / 160'} },
+      crises:['🔥 Heat wave','📉 Recession','⚡ Power crunch','🦠 Public-health event'],
+      reflMoney:'Need to earn more', reflEnergy:'So tired, need a rest', reflFood:'Getting hungry',
+      reflFriends:'More and more friends — nice', reflHappy:'Life is pretty good lately', reflStudent:'Better study hard',
+      reflGeneric:['Grinding to make a living','Want to see new places','Just getting by','A bit homesick'],
+      ent_home:'home', ent_food:'restaurant', ent_shop:'shop', ent_work:'office', ent_building:'building',
+      tools:{park:'Park',hospital:'Hospital',school:'School',factory:'Factory',power:'Power',wind:'Wind',demolish:'Demolish',inspect:'Inspect'}, tool_locked:'(locked)',
+      mode_creative:'Creative', mode_survival:'Survival', view_fp:'First person', view_tp:'Third person',
+      w_god:'God View', w_drive_on:'Drive', w_drive_off:'Exit Car', w_switch:'Switch', w_view:'View', w_map:'Map',
+      orderPlace:{leisure:'the park',food:'a restaurant',home:'home',work:'the office'},
+      // dynamic messages
+      tempFmt:(t,f)=>`${t}° (feels ${f}°)`, yearFmt:y=>'AD '+y,
+      eraEnter:n=>`🏙 The city enters the "${n}" era`, eraToast:n=>`Entering ${n}`,
+      polGreen:'🌱 Green policy: pollution↓ clean energy↑', polEco:'💰 Economic stimulus: economy↑ pollution↑',
+      polTech:'🔬 Tech investment: accelerating toward the future', polShield:'🛡 Disaster hardening: resilience↑',
+      noTreasuryToast:c=>`💰 Treasury too low (need $${c})`, noTreasuryLog:'💰 Treasury too low — cannot build',
+      bmHospital:'🏥 Hospital built: health↑ happiness↑', bmSchool:'🎓 School built: education↑ tech↑',
+      bmFactory:'🏭 Factory built: jobs↑ economy↑ pollution↑', bmPower:'⚡ Power plant built: supply↑',
+      bmWind:'🍃 Wind farm built: clean energy↑', bmPark:'🌳 Park built: pollution↓ happiness↑',
+      noFree:'No free land — try expanding or demolishing',
+      quakeMsg:(m,place,dist,hit)=>`⚠️ M${m} earthquake!${place?(' ('+place+', ~'+dist+'km)'):''} ${hit} buildings damaged`,
+      quakeToast:'⚠️ Earthquake!', quakeDrill:'simulated drill', memQuake:'lived through an earthquake',
+      cityNotfound:'City not found', citySwitch:c=>`📍 Switched to ${c}, rebuilding…`, cityInsufficient:'Not enough real map data for this city',
+      locLocating:'Locating and fetching live data…', locDefault:'Using default city (Beijing) — switch it later…', osmLoading:'Loading real map (OpenStreetMap)…',
+      founded:(c,y)=>`🌆 City founded in ${c} · AD ${y}`, popSeed:n=>`👥 Real population linked ≈ ${n}`,
+      evOldFriend:n=>'with old friend '+n, evMet:n=>'met '+n, memChat:n=>'chatted with '+n,
+      memSleep:'had a sleep', memEatOut:nm=>'ate at '+(nm||'a place'), memEatHome:'ate at home', memWork:'went to work',
+      memShop:nm=>'shopped at '+(nm||'the store'), memRelax:nm=>'relaxed at '+(nm||'the park'), memHome:'stayed home', memGoto:nm=>'went to '+(nm||'a place'),
+      npcQuake:['That quake was terrifying','Still a bit shaken…','You ok?'],
+      npcFriend:n=>['Hey '+n+', good to see you!','Old friend, how have you been?','Lunch sometime?'],
+      npcHungry:['I am starving','Know any good food nearby?'], npcTired:['So tired today','Exhausted…'],
+      npcBroke:['Gotta earn more','Pulling a lot of overtime lately'],
+      npcHi:n=>['Hello there','Nice weather today','Busy, huh?','I am '+n+', hi'],
+      panelAge:a=>a+' yrs', panelNow:'Now', panelFor:d=>` (for ${d})`, panelKnows:n=>'knows '+n+' people',
+      panelRecent:e=>' · recently '+e, panelGoal:g=>'🎯 Goal: '+g, panelDone:' (done)',
+      aiEnabled:'🤖 Local AI enabled', aiLoadingAlready:'🤖 Model still loading…',
+      aiNoGpu:'⚠️ Browser has no WebGPU — keeping template chat', aiNoGpuToast:'No WebGPU',
+      aiLoading:'🤖 Loading local AI model (first run downloads a few hundred MB)…',
+      aiReady:'🤖 Local AI ready! Select a citizen → Talk', aiReadyToast:'🤖 AI ready',
+      aiProg:p=>'🤖 '+p, aiFail:e=>'🤖 AI load failed: '+e, aiHint:'Tip: tap “AI Chat” below to enable the local LLM',
+      llmSys:(name,age,job,city,mood)=>`You are ${name}, ${age}, working as a ${job}, living in ${city}. You feel ${mood} right now. Reply to a passerby greeting you in one casual English sentence under 14 words, matching your role and mood. No quotes, no explanation.`,
+      llmUser:'Hi, what are you up to?', llmMoods:['very tired','a bit hungry','short on cash','in a good mood','okay'],
+      memSaid:l=>'said: "'+l+'"',
+      enteredBuilding:nm=>'🚪 Entered '+(nm||'a building'),
+      goalDone:(n,g)=>`🎉 ${n} achieved a life goal: ${g}`, memGoal:g=>'achieved goal: '+g,
+      deficit:'⚠️ Treasury deficit — public services suffer', passed:(n,a)=>`🕯 ${n} (${a}) passed away peacefully`,
+      born:n=>'👶 New life born: '+n, immigrant:(n,j)=>`🌟 New resident moved in: ${n} (${j})`,
+      goalFree:'Free Mode', goalFreeDesc:'No goal — build as you please', goalFreeLog:'🎯 Free mode',
+      goalNew:(n,d)=>`🎯 New goal: ${n} — ${d}`, goalAchieved:(n,s)=>`🎉 Goal achieved! "${n}" final score ${s}`,
+      goalScoreToast:s=>`🎉 Achieved! Score ${s}`, goalTimeout:n=>`⏰ Goal not met in time: ${n}`, goalFailToast:'⏰ Goal failed',
+      goalTrack:(n,p,y)=>`🎯 ${n}　<span style="opacity:.85;font-weight:400;font-size:12px">${p} · ${y} yrs left</span>`,
+      crisisLog:n=>n+'! respond carefully',
+      saved:(c,y)=>`💾 Saved "${c}" (evolved ${y} yrs)`, saveToast:'Saved', saveFail:e=>'Save failed: '+e,
+      noSave:'No local save found', noSaveToast:'No save', loadCorrupt:'Save is corrupted',
+      loadReading:(c,y)=>`📂 Loading save: ${c} (evolved ${y} yrs)`, loadToast:'Loading…', loadedToast:c=>`Loaded "${c}"`,
+      snapName:c=>'data-city-'+c+'.png', snapSaved:'📷 City snapshot PNG saved', snapToast:'📷 Snapshot saved', snapFail:'Snapshot failed',
+      qualLabel:q=>'Quality '+q, qualLog:q=>'⚙️ Quality set to: '+q, qualToast:q=>'Quality '+q,
+      techLocked:'🔒 Tech not unlocked (needs Near Future)', treasuryLow:'💰 Treasury too low', built:n=>'🧱 Built: '+n,
+      demolished:'⛏️ Demolished', noDemolish:'No building nearby to demolish',
+      modeLabel:m=>'Mode '+m, modeToast:m=>m+' mode', switched:(n,j)=>`🔄 Switched to ${n} (${j})`,
+      possessToast:n=>'Possessing '+n, possessLog:(n,j)=>`🎮 You are now controlling ${n} (${j})`,
+      gaveMoney:n=>'💵 Gave '+n+' some money', changedJob:(n,j)=>`💼 ${n} switched careers to ${j}`, cheered:n=>'😊 Cheered '+n,
+      orderGo:(n,p)=>`📍 Sent ${n} to ${p}`, drive_off:'🚶 Out of car', drive_on:'🚗 In car · WASD to drive · F to exit',
+      wpSet:'📍 Waypoint set', wpReached:'📍 Waypoint reached',
+      mapInsufficient:'Not enough real map data, using a generated city', loadedReal:(c,b,h)=>`🗺 Loaded "${c}" real map: ${b} buildings / ${h} homes`,
+      e_leave:'[E] Leave', e_enter:nm=>'[E] Enter '+nm
+    },
+    zh: {
+      title:'数据城市 · 现实驱动 · 未来演化模拟器', appname:'数据城市',
+      live_title:'现实世界数据', live_city:'📍 城市', locating:'定位中…', live_pop:'👥 真实人口',
+      live_time:'🕐 现实时间', live_weather:'🌤 天气', live_temp:'🌡 气温', live_aqi:'💨 空气 AQI',
+      live_fx:'💱 美元/人民币', live_btc:'₿ 比特币', live_quake:'🌍 最近地震', city_ph:'输入城市名切换…', btn_locate:'定位',
+      stats_year:'城市纪年', pop:'👥 人口', treasury:'💰 市库', eco_idx:'📈 经济指数', tech:'🔬 科技',
+      pollution:'🏭 污染', happiness:'😊 幸福度', clean_energy:'⚡ 清洁能源',
+      svc_power:'电力', svc_job:'就业', svc_health:'医疗', svc_edu:'教育', svc_traffic:'交通',
+      c_pause:'暂停', c_resume:'继续', c_speed:'速度', c_goals:'目标', c_ground:'进入地面', c_god:'上帝视角',
+      c_map:'数据图', c_ai:'AI对话', c_sound:'声音', c_save:'保存', c_load:'读取', c_shot:'快照', c_qual:'画质',
+      b_hospital:'+医院', b_school:'+学校', b_factory:'+工厂', b_power:'+电厂', b_wind:'+风电', b_park:'+公园',
+      p_green:'环保', p_eco:'经济', p_tech:'科技', p_shield:'防灾', c_quake:'模拟灾害',
+      go_home:'回家', go_work:'上班', go_food:'餐厅', go_leisure:'公园',
+      act_possess:'🎮 附身操控', act_talk:'💬 交谈', act_money:'💵 给钱', act_job:'💼 换工作', act_mood:'😊 鼓励',
+      ghint:'WASD 移动 · Shift 奔跑 · 拖动鼠标转视角 · 点击任意市民可选择与干预 · 走到门口按 E 进出建筑',
+      goals_pick:'🎯 选择一个目标', map_hint:'点击地图设置路点 · 按 M 关闭',
+      ov_title:'数据城市 · 未来演化',
+      ov_intro:'用<b>你所在城市的真实天气、空气、地震与经济数据</b>为起点，建起一座拥有完整基建的城市，<br/>看它自动演化向未来——你可以随时干预，亲手建设。',
+      ov_feat:'🏙 商务/住宅/工业分区　🏥 医院 🎓 学校 🏟 体育场 ⚡ 电厂 📡 地标<br/>🌉 河流桥梁　🛣 高架环路　🚄 铁路列车　✈️ 机场　🍃 风电光伏　💡 路灯<br/>📊 电力·就业·医疗·教育·交通 五大系统接入模拟',
+      ov_start:'▶ 建立城市',
+      ov_tip:'需要联网加载 3D 引擎与实时数据。定位被拒绝时使用默认城市，可在左下角切换。若黑屏请用本地服务器打开（见 README）。',
+      err_title:'😕 引擎加载失败', err_p:'无法从网络加载 3D 引擎。请检查网络，或在该文件夹启动本地服务器：',
+      err_open:'→ 打开', lang_name:'中文',
+      eras:['当代','近未来','未来都市','超未来'],
+      weather:{clear:'☀️ 晴',clouds:'⛅ 多云',rain:'🌧 雨',snow:'❄️ 雪',fog:'🌫 雾',storm:'⛈ 雷暴'},
+      aqi:['优','良','中','差','很差'], quake_calm:'平静',
+      traffic:['顺畅','一般','拥堵'],
+      needLabels:['精力','饱腹','社交','娱乐','财富'],
+      needDrive:{energy:'精力',fullness:'饥饿',social:'社交',fun:'娱乐',money:'金钱',comfort:'放松'},
+      states:{sleep:'睡觉',eatout:'外出就餐',eathome:'在家吃饭',work:'工作',shop:'购物',relax:'休闲娱乐',home:'在家',goto:'前往中'},
+      st_school:'上学', cmd_order:'你的指令',
+      jobGeneric:['职员','工程师','经理','设计师','程序员','会计','销售'],
+      jobDoctor:['医生','护士'], jobWorker:['工人','技工'],
+      job_free:'自由职业', job_teacher:'教师', job_power:'电厂技师', job_comm:'通信工程师', job_venue:'场馆员工', job_student:'学生', job_child:'孩童',
+      surnames:'李王张刘陈杨赵黄周吴徐孙马朱胡林何高罗郑'.split(''),
+      givens:['伟','芳','娜','敏','静','丽','强','磊','军','洋','勇','艳','杰','娟','涛','明','超','霞','平','刚','建','文','华','金','晓','梅','鹏','宇','婷','浩'],
+      place_park:'公园', your_location:'你的位置',
+      lifegoals:['买一套房','升职加薪','找到对象','开一家店','环游世界','成为名人'],
+      mapmodes:['关闭','污染热力','地价'], qualities:{high:'高',mid:'中',low:'低'},
+      goalDefs:{ livable:{name:'宜居之城',desc:'30 年内让幸福度 ≥ 90',prog:s=>'幸福度 '+Math.round(s.happiness)+' / 90'},
+        carbon:{name:'碳中和',desc:'30 年内 污染≤10 且 清洁能源≥80%',prog:s=>'污染 '+Math.round(s.pollution)+'/≤10 · 清洁 '+Math.round(s.green*100)+'%/80%'},
+        metro:{name:'大都会',desc:'40 年内人口增长 50%',prog:s=>'人口 '+fmt(s.population)+' / '+fmt(goalBasePop*1.5)},
+        rich:{name:'繁荣经济',desc:'30 年内经济指数 ≥ 160',prog:s=>'经济 '+Math.round(s.economy)+' / 160'} },
+      crises:['🔥 热浪来袭','📉 经济衰退','⚡ 电力紧张','🦠 公共卫生事件'],
+      reflMoney:'得多挣点钱了', reflEnergy:'好累，想好好休息', reflFood:'有点饿了',
+      reflFriends:'朋友越来越多，挺开心', reflHappy:'最近日子挺惬意', reflStudent:'好好上学吧',
+      reflGeneric:['为了生活继续打拼','想去看看新地方','日子就这么过着','有点想家'],
+      ent_home:'住宅', ent_food:'餐厅', ent_shop:'商店', ent_work:'公司', ent_building:'建筑',
+      tools:{park:'公园',hospital:'医院',school:'学校',factory:'工厂',power:'电厂',wind:'风电',demolish:'拆除',inspect:'检视'}, tool_locked:'（未解锁）',
+      mode_creative:'创造', mode_survival:'生存', view_fp:'第一人称', view_tp:'第三人称',
+      w_god:'上帝视角', w_drive_on:'上车', w_drive_off:'下车', w_switch:'切换角色', w_view:'视角', w_map:'大地图',
+      orderPlace:{leisure:'公园',food:'餐厅',home:'家',work:'公司'},
+      tempFmt:(t,f)=>`${t}° (体感${f}°)`, yearFmt:y=>'公元 '+y+' 年',
+      eraEnter:n=>`🏙 城市迈入「${n}」时代`, eraToast:n=>`进入 ${n}`,
+      polGreen:'🌱 环保政策：污染↓ 清洁能源↑', polEco:'💰 经济刺激：经济↑ 污染↑',
+      polTech:'🔬 科技投资：加速迈向未来', polShield:'🛡 防灾加固：抗灾能力↑',
+      noTreasuryToast:c=>`💰 市库不足（需 $${c}）`, noTreasuryLog:'💰 市库不足，无法建造',
+      bmHospital:'🏥 新建医院：医疗↑ 幸福↑', bmSchool:'🎓 新建学校：教育↑ 科技加速',
+      bmFactory:'🏭 新建工厂：就业↑ 经济↑ 污染↑', bmPower:'⚡ 新建发电厂：供电↑',
+      bmWind:'🍃 新建风电：清洁能源↑', bmPark:'🌳 新建公园：污染↓ 幸福↑',
+      noFree:'没有空地了，试试扩大或拆除',
+      quakeMsg:(m,place,dist,hit)=>`⚠️ M${m} 地震！${place?('（'+place+'，约'+dist+'km）'):''} ${hit}栋受损`,
+      quakeToast:'⚠️ 地震！', quakeDrill:'模拟演练', memQuake:'经历了地震',
+      cityNotfound:'未找到该城市', citySwitch:c=>`📍 切换到 ${c}，重建中…`, cityInsufficient:'该城市真实地图数据不足',
+      locLocating:'正在定位并获取实时数据…', locDefault:'使用默认城市（北京），可稍后切换…', osmLoading:'正在拉取真实地图(OpenStreetMap)…',
+      founded:(c,y)=>`🌆 城市建立于 ${c} · 公元 ${y} 年`, popSeed:n=>'👥 接入真实人口约 '+n,
+      evOldFriend:n=>'和老友 '+n, evMet:n=>'结识了 '+n, memChat:n=>'和'+n+'聊了聊',
+      memSleep:'睡了一觉', memEatOut:nm=>'在'+(nm||'外面')+'吃了饭', memEatHome:'在家吃了饭', memWork:'上了班',
+      memShop:nm=>'逛了逛'+(nm||''), memRelax:nm=>'在'+(nm||'公园')+'放松', memHome:'在家待着', memGoto:nm=>'去了趟'+(nm||''),
+      npcQuake:['刚那地震太吓人了','还在后怕…','你没事吧？'],
+      npcFriend:n=>['嘿'+n+'，又见面啦！','老朋友，最近咋样？','改天一起吃饭？'],
+      npcHungry:['我快饿扁了','你知道哪家好吃吗？'], npcTired:['今天好累啊','困死了…'],
+      npcBroke:['得多挣点钱啊','最近在拼命加班'],
+      npcHi:n=>['你好呀','今天天气不错','忙着呢？','我是'+n+'，你好'],
+      panelAge:a=>a+'岁', panelNow:'当前', panelFor:d=>`（为了${d}）`, panelKnows:n=>'认识 '+n+' 人',
+      panelRecent:e=>' · 最近'+e, panelGoal:g=>'🎯 愿望：'+g, panelDone:'（已实现）',
+      aiEnabled:'🤖 本地 AI 已启用', aiLoadingAlready:'🤖 模型仍在加载…',
+      aiNoGpu:'⚠️ 浏览器不支持 WebGPU，无法启用本地 AI；继续使用模板对话', aiNoGpuToast:'不支持 WebGPU',
+      aiLoading:'🤖 正在加载本地 AI 模型（首次需下载数百 MB，请耐心等待）…',
+      aiReady:'🤖 本地 AI 已就绪！点选市民→「交谈」试试', aiReadyToast:'🤖 AI 就绪',
+      aiProg:p=>'🤖 '+p, aiFail:e=>'🤖 AI 加载失败：'+e, aiHint:'提示：点底部「AI对话」可启用本地大模型',
+      llmSys:(name,age,job,city,mood)=>'你叫'+name+'，'+age+'岁，职业是'+job+'，住在'+city+'。你现在'+mood+'。用一句不超过20个字的中文口语回应跟你打招呼的路人，符合身份与心情，不要解释、不要加引号。',
+      llmUser:'你好，在忙什么呢？', llmMoods:['很累','有点饿','手头紧','心情不错','还好'],
+      memSaid:l=>'说："'+l+'"',
+      enteredBuilding:nm=>'🚪 走进了'+(nm||'建筑'),
+      goalDone:(n,g)=>`🎉 ${n} 实现了人生愿望：${g}`, memGoal:g=>'实现了愿望：'+g,
+      deficit:'⚠️ 市库赤字，公共服务受影响', passed:(n,a)=>`🕯 ${n}（${a}岁）安详离世`,
+      born:n=>'👶 新生命降生：'+n, immigrant:(n,j)=>`🌟 新市民迁入：${n}（${j}）`,
+      goalFree:'自由模式', goalFreeDesc:'无目标，随心经营', goalFreeLog:'🎯 自由模式',
+      goalNew:(n,d)=>`🎯 新目标：${n} —— ${d}`, goalAchieved:(n,s)=>`🎉 目标达成！「${n}」最终得分 ${s}`,
+      goalScoreToast:s=>`🎉 达成！得分 ${s}`, goalTimeout:n=>`⏰ 目标超时未达成：${n}`, goalFailToast:'⏰ 目标失败',
+      goalTrack:(n,p,y)=>`🎯 ${n}　<span style="opacity:.85;font-weight:400;font-size:12px">${p} · 剩 ${y} 年</span>`,
+      crisisLog:n=>n+'！注意应对',
+      saved:(c,y)=>`💾 已保存「${c}」存档（演化 ${y} 年）`, saveToast:'已保存', saveFail:e=>'保存失败：'+e,
+      noSave:'没有找到本地存档', noSaveToast:'没有存档', loadCorrupt:'存档损坏',
+      loadReading:(c,y)=>`📂 读取存档：${c}（演化 ${y} 年）`, loadToast:'读取中…', loadedToast:c=>`已读取「${c}」`,
+      snapName:c=>'数据城市-'+c+'.png', snapSaved:'📷 已保存城市快照 PNG', snapToast:'📷 已保存快照', snapFail:'快照失败',
+      qualLabel:q=>'画质'+q, qualLog:q=>'⚙️ 画质档位切到：'+q, qualToast:q=>'画质 '+q,
+      techLocked:'🔒 科技未解锁（需近未来）', treasuryLow:'💰 市库不足', built:n=>'🧱 已建造：'+n,
+      demolished:'⛏️ 已拆除', noDemolish:'附近无可拆建筑',
+      modeLabel:m=>'模式 '+m, modeToast:m=>m+'模式', switched:(n,j)=>`🔄 切换到 ${n}（${j}）`,
+      possessToast:n=>'已附身 '+n, possessLog:(n,j)=>`🎮 你正在操控 ${n}（${j}）`,
+      gaveMoney:n=>'💵 给了 '+n+' 一笔钱', changedJob:(n,j)=>`💼 ${n} 转行成为${j}`, cheered:n=>'😊 鼓励了 '+n,
+      orderGo:(n,p)=>`📍 让 ${n} 前往${p}`, drive_off:'🚶 下车', drive_on:'🚗 上车 · WASD 驾驶 · F 下车',
+      wpSet:'📍 已设置路点', wpReached:'📍 已到达路点',
+      mapInsufficient:'真实地图数据不足，使用程序生成城市', loadedReal:(c,b,h)=>`🗺 已载入「${c}」真实地图：${b} 栋建筑 / ${h} 户住宅`,
+      e_leave:'[E] 离开', e_enter:nm=>'[E] 进入'+nm
+    }
+  };
+  function t(k,...a){ let d=I18N[LANG]||I18N.en, s=(d&&d[k]); if(s==null) s=I18N.en[k]; if(s==null) s=k; return typeof s==='function'?s(...a):s; }
+  const tarr = k => (I18N[LANG]&&I18N[LANG][k])||I18N.en[k];
+  function personName(){ return LANG==='zh' ? pick(I18N.zh.surnames)+pick(I18N.zh.givens) : pick(I18N.en.givens)+' '+pick(I18N.en.surnames); }
+  const fmt = n => { if(LANG==='zh') return n>=1e8?(n/1e8).toFixed(2)+'亿':n>=1e4?(n/1e4).toFixed(1)+'万':Math.round(n).toLocaleString();
+    return n>=1e9?(n/1e9).toFixed(2)+'B':n>=1e6?(n/1e6).toFixed(2)+'M':n>=1e3?(n/1e3).toFixed(1)+'K':Math.round(n).toLocaleString(); };
+  function applyI18n(){
+    document.documentElement.lang = LANG==='zh'?'zh-CN':'en';
+    document.title = t('title');
+    document.querySelectorAll('[data-i18n]').forEach(e=>{ e.textContent = t(e.dataset.i18n); });
+    document.querySelectorAll('[data-i18n-ph]').forEach(e=>{ e.placeholder = t(e.dataset.i18nPh); });
+    document.querySelectorAll('[data-i18n-html]').forEach(e=>{ e.innerHTML = t(e.dataset.i18nHtml); });
+    const lt=$('langToggle'); if(lt) lt.innerHTML = '<b class="'+(LANG==='en'?'on':'')+'" data-l="en">EN</b><span>·</span><b class="'+(LANG==='zh'?'on':'')+'" data-l="zh">中</b>';
+    // refresh dynamic-but-labelled controls
+    const pl=$('cPlay'); if(pl) pl.lastChild.textContent = sim.running?t('c_pause'):t('c_resume');
+    const gd=$('cGround'); if(gd) gd.lastChild.textContent = (typeof camMode!=='undefined'&&camMode==='ground')?t('c_god'):t('c_ground');
+    const qb=$('cQual'); if(qb) qb.lastChild.textContent = t('qualLabel', I18N[LANG].qualities[quality]);
+    const mb=$('cMap'); if(mb && typeof mapMode!=='undefined') mb.lastChild.textContent = tarr('mapmodes')[mapMode];
+    const mt=$('modeTag'); if(mt && typeof creative!=='undefined') mt.innerHTML = t('modeLabel','<b>'+(creative?t('mode_creative'):t('mode_survival'))+'</b>');
+    if(typeof TOOLS!=='undefined'){ TOOLS.forEach(o=>{ o.n = t('tools')[o.k||o.t]; }); if(typeof renderHotbar==='function') renderHotbar(); }
+    if(sim&&sim.started){ if(typeof updateStats==='function') updateStats(); if(typeof updateLive==='function') updateLive(); if(typeof updateGoalUI==='function') updateGoalUI(); if(selected&&typeof fillPanel==='function') fillPanel(); }
+    else { const yb=$('yearBig'); if(yb) yb.textContent=t('yearFmt','----'); const er=$('era'); if(er) er.textContent=tarr('eras')[0]; }
+  }
+  function setLang(l){ if(l===LANG) return; LANG=l; try{ localStorage.setItem('dc_lang',l); }catch(e){} applyI18n(); }
   const smat = (color,o={}) => new THREE.MeshStandardMaterial(Object.assign({color,roughness:0.82},o));
 
   const data = {
-    lat:39.9042, lon:116.4074, city:'北京', population:0,
+    lat:39.9042, lon:116.4074, city:'Beijing', population:0,
     weather:null, aqi:null, fx:null, crypto:null, quakes:[], seenQuakes:new Set(),
     on:{ geo:false, weather:false, aqi:false, fx:false, crypto:false, quake:false }
   };
@@ -666,13 +913,13 @@
       const mag=f.properties.mag, qlon=f.geometry.coordinates[0], qlat=f.geometry.coordinates[1], dist=haversine(data.lat,data.lon,qlat,qlon);
       if(mag>=5.5||(mag>=4&&dist<800)) triggerQuake(mag,dist,f.properties.place); } }catch(e){ data.on.quake=false; } }
   function haversine(a1,o1,a2,o2){ const R=6371,r=Math.PI/180,da=(a2-a1)*r,doo=(o2-o1)*r; const x=Math.sin(da/2)**2+Math.cos(a1*r)*Math.cos(a2*r)*Math.sin(doo/2)**2; return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x)); }
-  async function geocode(name){ try{ const r=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(name)}&count=1&language=zh`); const j=await r.json(); if(j.results&&j.results[0]){ const g=j.results[0]; data.lat=g.latitude; data.lon=g.longitude; data.city=g.name; data.population=g.population||0; return true; } }catch(e){} return false; }
-  async function reverseGeo(){ try{ const r=await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${data.lat}&longitude=${data.lon}&localityLanguage=zh`); const j=await r.json(); const nm=j.city||j.locality||j.principalSubdivision; if(nm) data.city=nm; }catch(e){} }
+  async function geocode(name){ try{ const r=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(name)}&count=1&language=${LANG==='zh'?'zh':'en'}`); const j=await r.json(); if(j.results&&j.results[0]){ const g=j.results[0]; data.lat=g.latitude; data.lon=g.longitude; data.city=g.name; data.population=g.population||0; return true; } }catch(e){} return false; }
+  async function reverseGeo(){ try{ const r=await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${data.lat}&longitude=${data.lon}&localityLanguage=${LANG==='zh'?'zh':'en'}`); const j=await r.json(); const nm=j.city||j.locality||j.principalSubdivision; if(nm) data.city=nm; }catch(e){} }
   async function fetchPopulation(){ if(data.population>1000) return;
     const nm=((data.city||'').replace(/(市辖区|特别行政区|自治区|自治州|地区|盟|市|区|县|省|州)$/,''))||data.city;
-    try{ const r=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(nm)}&count=1&language=zh`); const j=await r.json(); if(j.results&&j.results[0]&&j.results[0].population) data.population=j.results[0].population; }catch(e){} }
-  function seedPopulation(){ if(data.population>1000){ sim.population=data.population; sim.popScale=clamp(data.population/120000,1,400); logEv('👥 接入真实人口约 '+fmt(data.population),'good'); } }
-  function locate(){ return new Promise(res=>{ if(!navigator.geolocation){res(false);return;} navigator.geolocation.getCurrentPosition(p=>{data.lat=p.coords.latitude;data.lon=p.coords.longitude;data.city='你的位置';data.on.geo=true;res(true);},()=>res(false),{timeout:6000,maximumAge:600000}); }); }
+    try{ const r=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(nm)}&count=1&language=${LANG==='zh'?'zh':'en'}`); const j=await r.json(); if(j.results&&j.results[0]&&j.results[0].population) data.population=j.results[0].population; }catch(e){} }
+  function seedPopulation(){ if(data.population>1000){ sim.population=data.population; sim.popScale=clamp(data.population/120000,1,400); logEv(t('popSeed', fmt(data.population)),'good'); } }
+  function locate(){ return new Promise(res=>{ if(!navigator.geolocation){res(false);return;} navigator.geolocation.getCurrentPosition(p=>{data.lat=p.coords.latitude;data.lon=p.coords.longitude;data.city=t('your_location');data.on.geo=true;res(true);},()=>res(false),{timeout:6000,maximumAge:600000}); }); }
   async function refreshAll(){ await Promise.allSettled([fetchWeather(),fetchFx(),fetchCrypto(),fetchQuakes()]); updateLive(); }
 
   function applyWeather(){ const w=data.weather; if(!w)return; rain.visible=(w.cat==='rain'||w.cat==='storm'); snow.visible=(w.cat==='snow');
@@ -684,8 +931,8 @@
     const dmgN=Math.round(clamp((mag-4)*2,1,12)*(1-sim.resilience*0.5)); let hit=0;
     for(const b of [...buildings].sort(()=>Math.random()-0.5)){ if(hit>=dmgN)break; if(b.damaged>0||b.fixed)continue; b.damaged=1; b.targetH*=rand(0.4,0.7); b.mat.color.offsetHSL(0,-0.3,-0.15); hit++; }
     sim.happiness=clamp(sim.happiness-clamp((mag-4)*6,3,30),0,100); sim.economy=clamp(sim.economy-clamp((mag-4)*4,2,20),20,400);
-    logEv(`⚠️ M${mag.toFixed(1)} 地震！${place?('（'+place+'，约'+Math.round(dist)+'km）'):''} ${hit}栋受损`,'bad'); toast('⚠️ 地震！');
-    recentQuake=12; for(const c of citizens) remember(c,'经历了地震'); quakeSound();
+    logEv(t('quakeMsg', mag.toFixed(1), place, Math.round(dist), hit),'bad'); toast(t('quakeToast'));
+    recentQuake=12; for(const c of citizens) remember(c,t('memQuake')); quakeSound();
   }
 
   // ============ 模拟推进 ============
@@ -742,7 +989,7 @@
     checkGoal();
   }
   function onEraUp(){
-    logEv(`🏙 城市迈入「${ERAS[sim.era]}」时代`,'good'); toast(`进入 ${ERAS[sim.era]}`);
+    logEv(t('eraEnter', eraName(sim.era)),'good'); toast(t('eraToast', eraName(sim.era)));
     const pal=PAL[sim.era];
     for(const b of [...buildings].sort(()=>Math.random()-0.5).slice(0,Math.round(buildings.length*0.5))){
       if(b.damaged||b.fixed)continue; b.targetH=clamp(b.targetH*rand(1.12,1.45),3,70); b.era=sim.era;
@@ -753,70 +1000,72 @@
 
   // ============ 干预 / 建造 ============
   function intervene(act){
-    if(act==='green'){ sim.green=clamp(sim.green+0.12,0,0.98); sim.pollution=clamp(sim.pollution-10,0,100); sim.economy=clamp(sim.economy-6,20,400); logEv('🌱 环保政策：污染↓ 清洁能源↑','good'); }
-    else if(act==='eco'){ sim.econPolicy+=0.8; sim.pollution=clamp(sim.pollution+6,0,100); logEv('💰 经济刺激：经济↑ 污染↑','warn'); }
-    else if(act==='tech'){ sim.techBoost+=0.6; sim.economy=clamp(sim.economy-5,20,400); logEv('🔬 科技投资：加速迈向未来','good'); }
-    else if(act==='shield'){ sim.resilience=clamp(sim.resilience+0.15,0,0.95); sim.economy=clamp(sim.economy-5,20,400); logEv('🛡 防灾加固：抗灾能力↑','good'); }
+    if(act==='green'){ sim.green=clamp(sim.green+0.12,0,0.98); sim.pollution=clamp(sim.pollution-10,0,100); sim.economy=clamp(sim.economy-6,20,400); logEv(t('polGreen'),'good'); }
+    else if(act==='eco'){ sim.econPolicy+=0.8; sim.pollution=clamp(sim.pollution+6,0,100); logEv(t('polEco'),'warn'); }
+    else if(act==='tech'){ sim.techBoost+=0.6; sim.economy=clamp(sim.economy-5,20,400); logEv(t('polTech'),'good'); }
+    else if(act==='shield'){ sim.resilience=clamp(sim.resilience+0.15,0,0.95); sim.economy=clamp(sim.economy-5,20,400); logEv(t('polShield'),'good'); }
     updateStats();
   }
   function buildAction(kind){
     const COST={hospital:800,school:600,factory:400,power:1000,wind:500,park:300}, cost=COST[kind]||0;
-    if(sim.started && sim.treasury<cost){ toast('💰 市库不足（需 $'+cost+'）'); logEv('💰 市库不足，无法建造','bad'); return; }
+    if(sim.started && sim.treasury<cost){ toast(t('noTreasuryToast',cost)); logEv(t('noTreasuryLog'),'bad'); return; }
     const p=freePlot();
-    if(kind==='hospital'){ if(!p)return nofree(); makeHospital(p); logEv('🏥 新建医院：医疗↑ 幸福↑','good'); }
-    else if(kind==='school'){ if(!p)return nofree(); makeSchool(p); logEv('🎓 新建学校：教育↑ 科技加速','good'); }
-    else if(kind==='factory'){ if(!p)return nofree(); p.zone='ind'; makeBuilding(p); p.occupied=true; logEv('🏭 新建工厂：就业↑ 经济↑ 污染↑','warn'); }
-    else if(kind==='power'){ if(!p)return nofree(); makePowerPlant(p, sim.era>=2); logEv('⚡ 新建发电厂：供电↑','good'); }
+    if(kind==='hospital'){ if(!p)return nofree(); makeHospital(p); logEv(t('bmHospital'),'good'); }
+    else if(kind==='school'){ if(!p)return nofree(); makeSchool(p); logEv(t('bmSchool'),'good'); }
+    else if(kind==='factory'){ if(!p)return nofree(); p.zone='ind'; makeBuilding(p); p.occupied=true; logEv(t('bmFactory'),'warn'); }
+    else if(kind==='power'){ if(!p)return nofree(); makePowerPlant(p, sim.era>=2); logEv(t('bmPower'),'good'); }
     else if(kind==='wind'){ const g=new THREE.Group(); const x=-SPAN/2-rand(8,28), z=-SPAN/2-rand(2,30);
       const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.25,0.4,12,8),smat(0xeeeeee)); pole.position.y=6; pole.castShadow=true; g.add(pole);
       const hub=new THREE.Group(); hub.position.set(0,12,0.5); for(let b=0;b<3;b++){ const bl=new THREE.Mesh(new THREE.BoxGeometry(0.3,7,0.6),smat(0xf4f4f4)); bl.position.y=3.5; const arm=new THREE.Group(); arm.add(bl); arm.rotation.z=b*Math.PI*2/3; hub.add(arm); }
-      g.add(hub); g.position.set(x,0,z); activeGroup.add(g); turbines.push(hub); infra.wind++; sim.green=clamp(sim.green+0.04,0,0.98); logEv('🍃 新建风电：清洁能源↑','good'); }
-    else if(kind==='park'){ if(!p)return nofree(); makePark(p); logEv('🌳 新建公园：污染↓ 幸福↑','good'); }
+      g.add(hub); g.position.set(x,0,z); activeGroup.add(g); turbines.push(hub); infra.wind++; sim.green=clamp(sim.green+0.04,0,0.98); logEv(t('bmWind'),'good'); }
+    else if(kind==='park'){ if(!p)return nofree(); makePark(p); logEv(t('bmPark'),'good'); }
     sim.treasury-=cost; recountInfra(); updateStats();
   }
-  function nofree(){ logEv('没有空地了，试试扩大或拆除','bad'); }
+  function nofree(){ logEv(t('noFree'),'bad'); }
 
   // ============ UI ============
   function setupUI(){
     $('startBtn').onclick=startGame;
-    $('cPlay').onclick=()=>{ sim.running=!sim.running; $('playIc').textContent=sim.running?'⏸':'▶'; $('cPlay').lastChild.textContent=sim.running?'暂停':'继续'; };
+    $('cPlay').onclick=()=>{ sim.running=!sim.running; $('playIc').textContent=sim.running?'⏸':'▶'; $('cPlay').lastChild.textContent=sim.running?t('c_pause'):t('c_resume'); };
     $('cSpeed').onclick=()=>{ sim.speed=sim.speed>=4?1:sim.speed*2; $('speed').textContent=sim.speed+'×'; };
-    $('cQuake').onclick=()=>triggerQuake(rand(5,6.8),rand(5,200),'模拟演练');
+    $('cQuake').onclick=()=>triggerQuake(rand(5,6.8),rand(5,200),t('quakeDrill'));
     document.querySelectorAll('.btn[data-act]').forEach(b=>b.onclick=()=>intervene(b.dataset.act));
     document.querySelectorAll('.btn[data-build]').forEach(b=>b.onclick=()=>buildAction(b.dataset.build));
     $('cityGo').onclick=switchCity; $('cityName').addEventListener('keydown',e=>{ if(e.key==='Enter')switchCity(); });
+    $('langToggle').onclick=e=>{ const b=e.target.closest('[data-l]'); setLang(b?b.dataset.l:(LANG==='en'?'zh':'en')); };
+    applyI18n();
   }
   async function switchCity(){ const name=$('cityName').value.trim(); if(!name)return; const ok=await geocode(name);
-    if(!ok){ logEv('未找到该城市','bad'); return; }
-    $('cityName').value=''; logEv(`📍 切换到 ${data.city}，重建中…`,''); seedPopulation(); await refreshAll();
+    if(!ok){ logEv(t('cityNotfound'),'bad'); return; }
+    $('cityName').value=''; logEv(t('citySwitch', data.city),''); seedPopulation(); await refreshAll();
     const osm=await fetchOSM(550);
     if(osm && osm.buildings.length>=15){ if(realGroup){ scene.remove(realGroup); realGroup=null; } realMode=false; buildRealCity(osm); }
-    else logEv('该城市真实地图数据不足','bad'); }
+    else logEv(t('cityInsufficient'),'bad'); }
   async function startGame(){
-    if(sim.started)return; initAudio(); $('loadnote').textContent='正在定位并获取实时数据…';
-    const got=await locate(); if(!got) $('loadnote').textContent='使用默认城市（北京），可稍后切换…';
+    if(sim.started)return; initAudio(); $('loadnote').textContent=t('locLocating');
+    const got=await locate(); if(!got) $('loadnote').textContent=t('locDefault');
     await reverseGeo(); await fetchPopulation(); seedPopulation();
     await refreshAll(); await tryRealCity(); recountInfra(); sim.started=true; sim.running=true; controls.autoRotate=false;
     $('overlay').classList.add('fade'); setTimeout(()=>$('overlay').style.display='none',500);
-    logEv(`🌆 城市建立于 ${data.city} · 公元 ${startYear} 年`,'good');
+    logEv(t('founded', data.city, startYear),'good');
     setInterval(fetchWeather,9*60*1000); setInterval(fetchFx,30*60*1000); setInterval(fetchCrypto,3*60*1000); setInterval(fetchQuakes,3*60*1000);
   }
   function updateLive(){
     $('liveDot').className='dot'+((data.on.weather||data.on.fx||data.on.crypto)?' on':'');
     $('vCity').textContent=data.city+` (${data.lat.toFixed(1)},${data.lon.toFixed(1)})`;
     if(data.population>1000) $('vRealPop').textContent=fmt(data.population);
-    if(data.weather){ const w=data.weather, names={clear:'☀️ 晴',clouds:'⛅ 多云',rain:'🌧 雨',snow:'❄️ 雪',fog:'🌫 雾',storm:'⛈ 雷暴'};
-      $('vWeather').textContent=names[w.cat]||'—'; $('vTemp').textContent=`${w.temp!=null?w.temp.toFixed(0):'—'}° (体感${w.feels!=null?w.feels.toFixed(0):'—'}°)`; }
-    if(data.aqi){ const a=data.aqi.aqi, lvl=a<=20?'优':a<=40?'良':a<=60?'中':a<=80?'差':'很差'; $('vAqi').innerHTML=`${a} <small>${lvl}</small>`; }
+    if(data.weather){ const w=data.weather, names=tarr('weather');
+      $('vWeather').textContent=names[w.cat]||'—'; $('vTemp').textContent=t('tempFmt', w.temp!=null?w.temp.toFixed(0):'—', w.feels!=null?w.feels.toFixed(0):'—'); }
+    if(data.aqi){ const a=data.aqi.aqi, lvl=tarr('aqi')[a<=20?0:a<=40?1:a<=60?2:a<=80?3:4]; $('vAqi').innerHTML=`${a} <small>${lvl}</small>`; }
     if(data.fx) $('vFx').textContent=`¥${data.fx.CNY!=null?data.fx.CNY.toFixed(3):'—'}`;
     if(data.crypto){ const c=data.crypto, cls=c.btcChg>=0?'up':'down', sg=c.btcChg>=0?'▲':'▼'; $('vBtc').innerHTML=`$${Math.round(c.btc).toLocaleString()} <small class="${cls}">${sg}${Math.abs(c.btcChg).toFixed(1)}%</small>`; }
-    if(data.quakes&&data.quakes.length){ const q=data.quakes.reduce((a,b)=>b.properties.mag>a.properties.mag?b:a); $('vQuake').textContent=`M${q.properties.mag!=null?q.properties.mag.toFixed(1):'—'}`; } else if(data.on.quake) $('vQuake').textContent='平静';
+    if(data.quakes&&data.quakes.length){ const q=data.quakes.reduce((a,b)=>b.properties.mag>a.properties.mag?b:a); $('vQuake').textContent=`M${q.properties.mag!=null?q.properties.mag.toFixed(1):'—'}`; } else if(data.on.quake) $('vQuake').textContent=t('quake_calm');
   }
   function setBar(id,pct,color){ const i=$(id); i.style.width=clamp(pct,0,100)+'%'; if(color)i.style.background=color; }
   function svc(id,val,goodHigh){ const e=$(id); e.textContent=val; }
   function updateStats(){
-    $('yearBig').textContent='公元 '+(startYear+Math.floor(sim.yearF))+' 年';
-    $('era').textContent=ERAS[sim.era]; $('vPop').textContent=fmt(sim.population);
+    $('yearBig').textContent=t('yearFmt', startYear+Math.floor(sim.yearF));
+    $('era').textContent=eraName(sim.era); $('vPop').textContent=fmt(sim.population);
     const tre=$('vTreasury'); if(tre){ tre.textContent='$'+fmt(Math.round(sim.treasury)); tre.style.color=sim.treasury<0?'var(--bad)':'var(--text)'; }
     $('vEco').textContent=Math.round(sim.economy); $('vTech').textContent=Math.round(sim.tech/3.999*100)+'%';
     $('vPol').textContent=Math.round(sim.pollution); $('vHap').textContent=Math.round(sim.happiness); $('vGreen').textContent=Math.round(sim.green*100)+'%';
@@ -827,7 +1076,7 @@
     const jb=$('svJob'); jb.textContent=Math.round(sim.employment*100)+'%'; jb.style.color=C(sim.employment);
     const hl=$('svHealth'); hl.textContent=Math.round(sim.health*100)+'%'; hl.style.color=C(sim.health);
     const ed=$('svEdu'); ed.textContent=Math.round(sim.education*100)+'%'; ed.style.color=C(sim.education);
-    const tr=$('svTraffic'); const tl=sim.traffic<0.5?'顺畅':sim.traffic<0.9?'一般':'拥堵'; tr.textContent=tl; tr.style.color=sim.traffic<0.5?'var(--good)':sim.traffic<0.9?'var(--warn)':'var(--bad)';
+    const tr=$('svTraffic'); const tl=tarr('traffic')[sim.traffic<0.5?0:sim.traffic<0.9?1:2]; tr.textContent=tl; tr.style.color=sim.traffic<0.5?'var(--good)':sim.traffic<0.9?'var(--warn)':'var(--bad)';
     updateGoalUI();
   }
   function logEv(msg,cls){ const l=$('log'),d=document.createElement('div'); d.className='ev '+(cls||''); d.textContent=msg; l.appendChild(d); while(l.children.length>5) l.removeChild(l.firstChild); }
@@ -835,8 +1084,6 @@
 
   // ============ 市民 / NPC / 操控 / 干预 ============
   const BOX=new THREE.BoxGeometry(1,1,1), UP=new THREE.Vector3(0,1,0);
-  const SUR='李王张刘陈杨赵黄周吴徐孙马朱胡林何高罗郑'.split('');
-  const GIV=['伟','芳','娜','敏','静','丽','强','磊','军','洋','勇','艳','杰','娟','涛','明','超','霞','平','刚','建','文','华','金','晓','梅','鹏','宇','婷','浩'];
   let citizens=[], peopleGroup, selMarker, ctrlMarker, bubbles=[], socialT=0, recentQuake=0;
   const places={home:[],work:[],food:[],shop:[],leisure:[]};
   let roadCoords=[], controlled=null, selected=null, camMode='god';
@@ -863,7 +1110,7 @@
       else if(b.type==='com'){ const r=Math.random(); if(r<0.3) add(places.food,b,'food'); else if(r<0.6) add(places.shop,b,'shop'); else add(places.work,b,'work'); }
       else if(['ind','power','tower','hospital','school','stadium'].includes(b.type)) add(places.work,b,'work');
     }
-    for(const p of parks) places.leisure.push({x:p.x,z:p.z,type:'leisure',name:'公园',b:null});
+    for(const p of parks) places.leisure.push({x:p.x,z:p.z,type:'leisure',name:t('place_park'),b:null});
     if(!places.home.length) places.home.push({x:0,z:0,type:'home'});
     if(!places.work.length) places.work=places.home.slice();
     if(!places.food.length) places.food=places.work.slice(0,3);
@@ -872,10 +1119,10 @@
   }
   const anyPlace=t=>places[t][Math.floor(Math.random()*places[t].length)];
   function nearPlace(t,x,z){ let best=null,bd=1e18; for(const p of places[t]){ const d=(p.x-x)**2+(p.z-z)**2; if(d<bd){bd=d;best=p;} } return best||anyPlace(t); }
-  function jobFor(p){ const b=p&&p.b; if(!b) return '自由职业';
-    if(b.type==='hospital')return pick(['医生','护士']); if(b.type==='school')return '教师';
-    if(b.type==='ind')return pick(['工人','技工']); if(b.type==='power')return '电厂技师'; if(b.type==='tower')return '通信工程师'; if(b.type==='stadium')return '场馆员工';
-    return pick(['职员','工程师','经理','设计师','程序员','会计','销售']); }
+  function jobFor(p){ const b=p&&p.b; if(!b) return t('job_free');
+    if(b.type==='hospital')return pick(tarr('jobDoctor')); if(b.type==='school')return t('job_teacher');
+    if(b.type==='ind')return pick(tarr('jobWorker')); if(b.type==='power')return t('job_power'); if(b.type==='tower')return t('job_comm'); if(b.type==='stadium')return t('job_venue');
+    return pick(tarr('jobGeneric')); }
 
   function initCitizens(){
     buildPlaces();
@@ -888,22 +1135,21 @@
     for(let i=0;i<M;i++){
       const home=anyPlace('home'), work=anyPlace('work'), role=Math.random()<0.16?'student':'worker';
       const pr=makePerson(new THREE.Color().setHSL(Math.random(),0.45,0.5).getHex());
-      const c={ name:pick(SUR)+pick(GIV), age: role==='student'?Math.floor(rand(7,22)):Math.floor(rand(22,68)), role,
-        home, work: role==='student'?nearPlace('work',home.x,home.z):work, job: role==='student'?'学生':jobFor(work),
-        lunch:nearPlace('food',work.x,work.z), shop:anyPlace('shop'), fav:anyPlace('leisure'),
+      const c={ name:personName(), age: role==='student'?Math.floor(rand(7,22)):Math.floor(rand(22,68)), role,
+        home, work: role==='student'?nearPlace('work',home.x,home.z):work, job: role==='student'?t('job_student'):jobFor(work),
+        lunch:nearPlace('food',work.x,work.z), shop:anyPlace('shop'), fav:anyPlace('leisure'), job0:null,
         needs:{energy:rand(50,95),fullness:rand(40,90),social:rand(40,90),fun:rand(40,90),money:rand(25,80),mood:70},
         traits:{energy:1,fullness:1,social:rand(0.6,1.6),fun:rand(0.6,1.6),money:rand(0.7,1.6)},
         mesh:pr.group, legL:pr.legL, legR:pr.legR, x:home.x+rand(-1.5,1.5), z:home.z+rand(-1.5,1.5), dir:rand(0,6.28),
         speed:rand(2.6,4.2)*(role==='student'?0.9:1), phase:Math.random()*6, state:'home', drive:'',
         action:null, redecide:true, atPlace:false, dwellT:0, thinkT:rand(0,3), friends:{}, met:0, talkT:rand(2,6), lastEvent:'', memory:[], reflection:'',
-        lifeGoal:pick(LIFEGOALS), lifeDone:false, waypoints:[], wpi:0, moving:false, forceGoal:null };
+        lifeGoalI:Math.floor(Math.random()*6), lifeDone:false, waypoints:[], wpi:0, moving:false, forceGoal:null };
       pr.group.userData.cit=c; pr.group.position.set(c.x,0,c.z); peopleGroup.add(pr.group); citizens.push(c);
     }
   }
   function skyHour(){ return skyTime.getHours()+skyTime.getMinutes()/60; }
   // 效用制 AI + Smart Object：场所"广播"能满足哪些需求，市民按效用打分 + top-N 加权随机选择
-  const NEEDZH={energy:'精力',fullness:'饥饿',social:'社交',fun:'娱乐',money:'金钱',comfort:'放松'};
-  const STATEZH={sleep:'睡觉',eatout:'外出就餐',eathome:'在家吃饭',work:'工作',shop:'购物',relax:'休闲娱乐',home:'在家',goto:'前往中'};
+  function driveText(k){ return k==='__order'?t('cmd_order'):((tarr('needDrive')||{})[k]||''); }
   const ACTS=[
     {type:'sleep',  adv:{energy:1.0},                 dwell:[3,7],   pt:'home',    drive:'energy',   bias:h=>(h>=22||h<7)?1.4:(h>=13&&h<15?0.3:-0.5)},
     {type:'eatout', adv:{fullness:1.0,fun:0.2,social:0.2}, dwell:[1,2.5], pt:'food', drive:'fullness', bias:h=>((h>=7&&h<9)||(h>=11.5&&h<13.5)||(h>=18&&h<20))?0.7:-0.1},
@@ -917,7 +1163,7 @@
   function placeFor(c,pt){ if(pt==='home') return c.home; if(pt==='work') return c.work; return nearPlace(pt,c.x,c.z); }
   function weightedPick(arr){ if(arr.length<2) return arr[0]; let mn=1e9; for(const a of arr) mn=Math.min(mn,a._u); let tot=0; for(const a of arr){ a._w=a._u-mn+0.15; tot+=a._w; } let r=Math.random()*tot; for(const a of arr){ r-=a._w; if(r<=0) return a; } return arr[0]; }
   function chooseAction(c,h){
-    if(c.forceGoal) return {type:'goto', place:c.forceGoal, adv:{}, dwell:rand(1.5,3), driveLabel:'你的指令'};
+    if(c.forceGoal) return {type:'goto', place:c.forceGoal, adv:{}, dwell:rand(1.5,3), driveLabel:'__order'};
     const cand=[];
     for(const a of ACTS){
       const p=placeFor(c,a.pt); if(!p) continue;
@@ -931,7 +1177,7 @@
     cand.sort((x,y)=>y._u-x._u);
     const best=cand[0]._u, top=cand.filter(x=>x._u>=best-0.35).slice(0,4);
     const ch=weightedPick(top), a=ch.a;
-    return {type:a.type, place:ch.p, adv:a.adv, dwell:rand(a.dwell[0],a.dwell[1]), driveLabel:NEEDZH[a.drive]||''};
+    return {type:a.type, place:ch.p, adv:a.adv, dwell:rand(a.dwell[0],a.dwell[1]), driveLabel:a.drive||''};
   }
   function routeTo(c,t){ if(realMode) return roadPath(c.x,c.z,t.x,t.z);
     const vx=nearRoad(c.x), hz=nearRoad(t.z), ex=nearRoad(t.x);
@@ -959,7 +1205,7 @@
     a.needs.mood=clamp(a.needs.mood+4,0,100); b.needs.mood=clamp(b.needs.mood+4,0,100);
     if(a.friends[b.name]==null){ a.friends[b.name]=0; a.met++; } if(b.friends[a.name]==null){ b.friends[a.name]=0; b.met++; }
     a.friends[b.name]++; b.friends[a.name]++;
-    const close=a.friends[b.name]>4; a.lastEvent=(close?'和老友 ':'结识了 ')+b.name; b.lastEvent=(close?'和老友 ':'结识了 ')+a.name;
+    const close=a.friends[b.name]>4; a.lastEvent=(close?t('evOldFriend',b.name):t('evMet',b.name)); b.lastEvent=(close?t('evOldFriend',a.name):t('evMet',a.name));
     a.talkT=rand(8,16); b.talkT=rand(8,16); say(a,b); say(b,a);
   }
   function socialTick(){
@@ -969,48 +1215,48 @@
   }
   // 生成式智能体-lite：记忆 / 反思 / 模板对话（npcLine 即可替换为真实 LLM 调用的接口）
   function remember(c,t){ if(!t) return; c.memory.push(t); if(c.memory.length>8) c.memory.shift(); }
-  function memText(a){ if(!a) return ''; const nm=a.place&&a.place.name?('「'+a.place.name+'」'):'';
-    return ({sleep:'睡了一觉',eatout:'在'+(nm||'外面')+'吃了饭',eathome:'在家吃了饭',work:'上了班',shop:'逛了逛'+nm,relax:'在'+(nm||'公园')+'放松',home:'在家待着',goto:'去了趟'+nm})[a.type]||''; }
+  function memText(a){ if(!a) return ''; const nm=a.place&&a.place.name?a.place.name:'';
+    return ({sleep:t('memSleep'),eatout:t('memEatOut',nm),eathome:t('memEatHome'),work:t('memWork'),shop:t('memShop',nm),relax:t('memRelax',nm),home:t('memHome'),goto:t('memGoto',nm)})[a.type]||''; }
   function reflect(c){ const n=c.needs;
-    c.reflection = n.money<25?'得多挣点钱了' : n.energy<22?'好累，想好好休息' : n.fullness<22?'有点饿了' :
-      c.met>=5?'朋友越来越多，挺开心' : n.fun>76?'最近日子挺惬意' : (c.role==='student'?'好好上学吧' : pick(['为了生活继续打拼','想去看看新地方','日子就这么过着','有点想家'])); }
+    c.reflection = n.money<25?t('reflMoney') : n.energy<22?t('reflEnergy') : n.fullness<22?t('reflFood') :
+      c.met>=5?t('reflFriends') : n.fun>76?t('reflHappy') : (c.role==='student'?t('reflStudent') : pick(tarr('reflGeneric'))); }
   function npcLine(c,o){ const aff=c.friends[o.name]||0, n=c.needs;
-    if(recentQuake>0) return pick(['刚那地震太吓人了','还在后怕…','你没事吧？']);
-    if(aff>4) return pick(['嘿'+o.name+'，又见面啦！','老朋友，最近咋样？','改天一起吃饭？']);
-    if(n.fullness<30) return pick(['我快饿扁了','你知道哪家好吃吗？']);
-    if(n.energy<30) return pick(['今天好累啊','困死了…']);
-    if(n.money<30) return pick(['得多挣点钱啊','最近在拼命加班']);
-    return pick(['你好呀','今天天气不错','忙着呢？','我是'+c.name+'，你好']); }
+    if(recentQuake>0) return pick(tarr('npcQuake'));
+    if(aff>4) return pick(t('npcFriend',o.name));
+    if(n.fullness<30) return pick(tarr('npcHungry'));
+    if(n.energy<30) return pick(tarr('npcTired'));
+    if(n.money<30) return pick(tarr('npcBroke'));
+    return pick(t('npcHi',c.name)); }
   function textBubble(c,text){ if(bubbles.length>12||!text) return;
     const cv=document.createElement('canvas'), x=cv.getContext('2d'); x.font='22px sans-serif'; const w=Math.min(230,Math.ceil(x.measureText(text).width)+20); cv.width=w; cv.height=34;
     x.font='22px sans-serif'; x.fillStyle='rgba(12,18,28,0.82)'; roundRect(x,0,0,w,34,8); x.fill(); x.fillStyle='#eaf4ff'; x.textBaseline='middle'; x.fillText(text,10,18);
     const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthWrite:false,depthTest:false})); sp.scale.set(w*0.022,0.85,1); scene.add(sp); bubbles.push({c,sp,t:3.2}); }
-  function say(c,o){ if(Math.random()<0.6) textBubble(c,npcLine(c,o)); else bubble(c); remember(c,'和'+o.name+'聊了聊'); }
+  function say(c,o){ if(Math.random()<0.6) textBubble(c,npcLine(c,o)); else bubble(c); remember(c,t('memChat',o.name)); }
   // 可选：WebLLM 本地大模型驱动对话（需 WebGPU + 一次性模型下载；否则回退模板）
   let llmEngine=null, llmReady=false, llmLoading=false, llmBusy=false;
   async function enableLLM(){
-    if(llmReady){ logEv('🤖 本地 AI 已启用','good'); return; }
-    if(llmLoading){ logEv('🤖 模型仍在加载…',''); return; }
-    if(!navigator.gpu){ logEv('⚠️ 浏览器不支持 WebGPU，无法启用本地 AI；继续使用模板对话','warn'); toast('不支持 WebGPU'); return; }
-    llmLoading=true; logEv('🤖 正在加载本地 AI 模型（首次需下载数百 MB，请耐心等待）…','');
+    if(llmReady){ logEv(t('aiEnabled'),'good'); return; }
+    if(llmLoading){ logEv(t('aiLoadingAlready'),''); return; }
+    if(!navigator.gpu){ logEv(t('aiNoGpu'),'warn'); toast(t('aiNoGpuToast')); return; }
+    llmLoading=true; logEv(t('aiLoading'),'');
     try{
       const webllm=await import('https://esm.run/@mlc-ai/web-llm');
-      llmEngine=await webllm.CreateMLCEngine('Qwen2.5-0.5B-Instruct-q4f16_1-MLC',{ initProgressCallback:p=>{ if(p&&p.text) logEv('🤖 '+String(p.text).slice(0,42),''); } });
-      llmReady=true; logEv('🤖 本地 AI 已就绪！点选市民→「交谈」试试','good'); toast('🤖 AI 就绪');
-    }catch(e){ logEv('🤖 AI 加载失败：'+String(e).slice(0,70),'bad'); }
+      llmEngine=await webllm.CreateMLCEngine('Qwen2.5-0.5B-Instruct-q4f16_1-MLC',{ initProgressCallback:p=>{ if(p&&p.text) logEv(t('aiProg',String(p.text).slice(0,42)),''); } });
+      llmReady=true; logEv(t('aiReady'),'good'); toast(t('aiReadyToast'));
+    }catch(e){ logEv(t('aiFail',String(e).slice(0,70)),'bad'); }
     llmLoading=false;
   }
   async function talkLLM(c){
     if(!c) return;
-    if(!llmReady||llmBusy){ textBubble(c, npcLine(c,{name:'你',friends:{}})); if(!llmReady&&navigator.gpu) logEv('提示：点底部「AI对话」可启用本地大模型',''); return; }
+    if(!llmReady||llmBusy){ textBubble(c, npcLine(c,{name:'',friends:{}})); if(!llmReady&&navigator.gpu) logEv(t('aiHint'),''); return; }
     llmBusy=true;
     try{
-      const mood=c.needs.energy<30?'很累':c.needs.fullness<30?'有点饿':c.needs.money<30?'手头紧':c.needs.fun>70?'心情不错':'还好';
-      const sys='你叫'+c.name+'，'+c.age+'岁，职业是'+(c.role==='student'?'学生':c.job)+'，住在'+data.city+'。你现在'+mood+'。用一句不超过20个字的中文口语回应跟你打招呼的路人，符合身份与心情，不要解释、不要加引号。';
-      const r=await llmEngine.chat.completions.create({ messages:[{role:'system',content:sys},{role:'user',content:'你好，在忙什么呢？'}], max_tokens:48, temperature:0.9 });
+      const mood=tarr('llmMoods')[c.needs.energy<30?0:c.needs.fullness<30?1:c.needs.money<30?2:c.needs.fun>70?3:4];
+      const sys=t('llmSys', c.name, c.age, (c.role==='student'?t('job_student'):c.job), data.city, mood);
+      const r=await llmEngine.chat.completions.create({ messages:[{role:'system',content:sys},{role:'user',content:t('llmUser')}], max_tokens:48, temperature:0.9 });
       let line=((r.choices&&r.choices[0]&&r.choices[0].message.content)||'').trim().replace(/\s+/g,' ').replace(/^["“]|["”]$/g,'').slice(0,28);
-      if(line){ textBubble(c,line); remember(c,'说："'+line+'"'); }
-    }catch(e){ textBubble(c, npcLine(c,{name:'你',friends:{}})); }
+      if(line){ textBubble(c,line); remember(c,t('memSaid',line)); }
+    }catch(e){ textBubble(c, npcLine(c,{name:'',friends:{}})); }
     llmBusy=false;
   }
   function rethink(c,h){
@@ -1071,18 +1317,18 @@
     $('cQual').onclick=cycleQuality;
     $('citTalk').onclick=()=>{ if(selected) talkLLM(selected); };
     $('citClose').onclick=()=>{ selected=null; $('cit').style.display='none'; };
-    $('citPossess').onclick=()=>{ if(selected){ controlled=selected; selected.forceGoal=null; setMode('ground'); toast('已附身 '+controlled.name); logEv('🎮 你正在操控 '+controlled.name+'（'+controlled.job+'）','good'); } };
-    $('citMoney').onclick=()=>{ if(selected){ selected.needs.money=clamp(selected.needs.money+30,0,100); selected.needs.mood=clamp(selected.needs.mood+12,0,100); logEv('💵 给了 '+selected.name+' 一笔钱','good'); fillPanel(); } };
-    $('citJob').onclick=()=>{ if(selected){ const w=anyPlace('work'); selected.work=w; selected.job=jobFor(w); selected.redecide=true; logEv('💼 '+selected.name+' 转行成为'+selected.job,''); fillPanel(); } };
-    $('citMood').onclick=()=>{ if(selected){ selected.needs.mood=clamp(selected.needs.mood+20,0,100); selected.needs.social=clamp(selected.needs.social+15,0,100); logEv('😊 鼓励了 '+selected.name,'good'); fillPanel(); } };
-    document.querySelectorAll('#citSend [data-go]').forEach(b=>b.onclick=()=>{ if(selected){ const t=b.dataset.go; selected.forceGoal=nearPlace(t,selected.x,selected.z); selected.redecide=true; logEv('📍 让 '+selected.name+' 前往'+({leisure:'公园',food:'餐厅',home:'家',work:'公司'}[t]||t),''); } });
+    $('citPossess').onclick=()=>{ if(selected){ controlled=selected; selected.forceGoal=null; setMode('ground'); toast(t('possessToast',controlled.name)); logEv(t('possessLog',controlled.name,controlled.job),'good'); } };
+    $('citMoney').onclick=()=>{ if(selected){ selected.needs.money=clamp(selected.needs.money+30,0,100); selected.needs.mood=clamp(selected.needs.mood+12,0,100); logEv(t('gaveMoney',selected.name),'good'); fillPanel(); } };
+    $('citJob').onclick=()=>{ if(selected){ const w=anyPlace('work'); selected.work=w; selected.job=jobFor(w); selected.redecide=true; logEv(t('changedJob',selected.name,selected.job),''); fillPanel(); } };
+    $('citMood').onclick=()=>{ if(selected){ selected.needs.mood=clamp(selected.needs.mood+20,0,100); selected.needs.social=clamp(selected.needs.social+15,0,100); logEv(t('cheered',selected.name),'good'); fillPanel(); } };
+    document.querySelectorAll('#citSend [data-go]').forEach(b=>b.onclick=()=>{ if(selected){ const go=b.dataset.go; selected.forceGoal=nearPlace(go,selected.x,selected.z); selected.redecide=true; logEv(t('orderGo', selected.name, (tarr('orderPlace')[go]||go)),''); } });
   }
   function setMode(m){ if(inside) exitInterior(); camMode=m;
     if(m==='ground'){ if(!controlled) controlled=selected||citizens[0]; controls.minDistance=4; controls.maxDistance=42; controls.maxPolarAngle=Math.PI*0.49;
       const c=controlled; if(c){ controls.target.set(c.x,1.2,c.z); camera.position.set(c.x+7,5,c.z+7); }
-      $('cGround').firstChild.textContent='🛰'; $('cGround').lastChild.textContent='上帝视角'; $('ghint').style.display='block'; }
+      $('cGround').firstChild.textContent='🛰'; $('cGround').lastChild.textContent=t('c_god'); $('ghint').style.display='block'; }
     else { if(controlled) controlled.redecide=true; controls.minDistance=28; controls.maxDistance=320; controls.maxPolarAngle=Math.PI*0.495;
-      $('cGround').firstChild.textContent='👣'; $('cGround').lastChild.textContent='进入地面'; $('ghint').style.display='none'; }
+      $('cGround').firstChild.textContent='👣'; $('cGround').lastChild.textContent=t('c_ground'); $('ghint').style.display='none'; }
     applyHud();
   }
   function pickAt(px,py){ if(!citizens.length||!raycaster) return;
@@ -1092,12 +1338,12 @@
   }
   function nbar(v){ const c=v>=60?'var(--good)':v>=30?'var(--warn)':'var(--bad)'; return `<div class="nb"><i style="width:${clamp(v,0,100)}%;background:${c}"></i></div>`; }
   function fillPanel(){ const c=selected; if(!c) return;
-    $('citName').textContent=c.name+' · '+c.age+'岁';
-    $('citJobV').textContent=(c.role==='student'?'学生':c.job)+(c.work&&c.work.name?' · '+c.work.name:'');
-    let st=STATEZH[c.state]||c.state; if(c.state==='work'&&c.role==='student') st='上学';
-    $('citState').innerHTML='当前：'+st+(c.drive?('（为了'+c.drive+'）'):'')+'<br><span style="opacity:.62">认识 '+c.met+' 人'+(c.lastEvent?(' · 最近'+c.lastEvent):'')+'</span>'+'<br><span style="opacity:.62">🎯 愿望：'+c.lifeGoal+(c.lifeDone?'（已实现）':'')+'</span>'+(c.reflection?('<br><span style="opacity:.62">💭 '+c.reflection+'</span>'):'');
-    const L=(t,v)=>`<span>${t}</span>`+nbar(v), n=c.needs;
-    $('citNeeds').innerHTML=L('精力',n.energy)+L('饱腹',n.fullness)+L('社交',n.social)+L('娱乐',n.fun)+L('财富',n.money);
+    $('citName').textContent=c.name+' · '+t('panelAge',c.age);
+    $('citJobV').textContent=(c.role==='student'?t('job_student'):c.job)+(c.work&&c.work.name?' · '+c.work.name:'');
+    let st=tarr('states')[c.state]||c.state; if(c.state==='work'&&c.role==='student') st=t('st_school');
+    $('citState').innerHTML=t('panelNow')+': '+st+(c.drive?t('panelFor',driveText(c.drive)):'')+'<br><span style="opacity:.62">'+t('panelKnows',c.met)+(c.lastEvent?t('panelRecent',c.lastEvent):'')+'</span>'+'<br><span style="opacity:.62">'+t('panelGoal',tarr('lifegoals')[c.lifeGoalI])+(c.lifeDone?t('panelDone'):'')+'</span>'+(c.reflection?('<br><span style="opacity:.62">💭 '+c.reflection+'</span>'):'');
+    const lbls=tarr('needLabels'), L=(lab,v)=>`<span>${lab}</span>`+nbar(v), n=c.needs;
+    $('citNeeds').innerHTML=L(lbls[0],n.energy)+L(lbls[1],n.fullness)+L(lbls[2],n.social)+L(lbls[3],n.fun)+L(lbls[4],n.money);
   }
   let panelT=0;
   function updatePanel(dt){ if(selected&&$('cit').style.display!=='none'){ panelT+=dt; if(panelT>0.35){ panelT=0; fillPanel(); } } }
@@ -1257,7 +1503,7 @@
       g.forEach((q,i)=>{ const l=ll2local(q.lat,q.lon); i?sh.lineTo(l.x,-l.z):sh.moveTo(l.x,-l.z); });
       let gm; try{ gm=new THREE.ShapeGeometry(sh); }catch(e){ continue; } gm.rotateX(-Math.PI/2);
       const m=new THREE.Mesh(gm,smat(0x3f7f3a,{roughness:1})); m.position.y=0.05; m.receiveShadow=true; realGroup.add(m);
-      const c=polyCentroid(g); places.leisure.push({x:c.x,z:c.z,type:'leisure',name:(p.tags&&p.tags.name)||'公园'}); parks.push({x:c.x,z:c.z}); }
+      const c=polyCentroid(g); places.leisure.push({x:c.x,z:c.z,type:'leisure',name:(p.tags&&p.tags.name)||t('place_park')}); parks.push({x:c.x,z:c.z}); }
   }
   function buildRealWater(arr){ if(!arr) return;
     for(const p of arr){ const g=p.geometry; if(!g||g.length<3) continue; const sh=new THREE.Shape();
@@ -1299,9 +1545,9 @@
     if(!places.leisure.length) places.leisure=places.home.slice(0,5);
   }
   async function tryRealCity(){
-    $('loadnote').textContent='正在拉取真实地图(OpenStreetMap)…';
+    $('loadnote').textContent=t('osmLoading');
     const osm=await fetchOSM(550);
-    if(!osm || osm.buildings.length<15){ logEv('真实地图数据不足，使用程序生成城市',''); return false; }
+    if(!osm || osm.buildings.length<15){ logEv(t('mapInsufficient'),''); return false; }
     buildRealCity(osm); return true;
   }
   function buildRealCity(osm){
@@ -1316,7 +1562,7 @@
     spawnCitizens(80);
     const sc=sunLight.shadow.camera; sc.left=-150; sc.right=150; sc.top=150; sc.bottom=-150; sc.updateProjectionMatrix();
     controls.target.set(0,4,0); camera.position.set(130,115,130);
-    logEv('🗺 已载入「'+data.city+'」真实地图：'+buildings.length+' 栋建筑 / '+places.home.length+' 户住宅','good');
+    logEv(t('loadedReal', data.city, buildings.length, places.home.length),'good');
   }
 
   // ============ 室内（可进入建筑） ============
@@ -1347,7 +1593,7 @@
     cityGroup.visible=false; if(realGroup) realGroup.visible=false; peopleGroup.visible=false; if(crowdMesh) crowdMesh.visible=false;
     controlled.x=0; controlled.z=4; interiorGroup.add(controlled.mesh); controlled.mesh.position.set(0,0,4);
     controls.minDistance=4; controls.maxDistance=24; controls.target.set(0,1,0); camera.position.set(9,8,11);
-    logEv('🚪 走进了'+(place.name?('「'+place.name+'」'):'建筑'),'');
+    logEv(t('enteredBuilding', place.name?place.name:''),'');
   }
   function exitInterior(){
     if(!inside) return; inside=false;
@@ -1360,9 +1606,9 @@
   function toggleInterior(){ if(inside) exitInterior(); else if(camMode==='ground'&&controlled&&nearEnter) enterInterior(nearEnter); }
   function updateInterior(){
     const ep=$('eprompt');
-    if(inside){ ep.style.display='block'; ep.textContent='[E] 离开'; return; }
+    if(inside){ ep.style.display='block'; ep.textContent=t('e_leave'); return; }
     if(camMode==='ground'&&controlled){ nearEnter=nearestEnterable();
-      if(nearEnter){ ep.style.display='block'; ep.textContent='[E] 进入'+(nearEnter.name?('「'+nearEnter.name+'」'):({home:'住宅',food:'餐厅',shop:'商店',work:'公司'}[nearEnter.type]||'建筑')); }
+      if(nearEnter){ ep.style.display='block'; ep.textContent=t('e_enter', nearEnter.name?nearEnter.name:t('ent_'+nearEnter.type)); }
       else ep.style.display='none';
     } else { ep.style.display='none'; nearEnter=null; }
   }
@@ -1371,7 +1617,7 @@
   const GRID=40, GSPAN=280;
   let gPol=new Float32Array(GRID*GRID), gPol2=new Float32Array(GRID*GRID), gSrc=new Float32Array(GRID*GRID), gLand=new Float32Array(GRID*GRID);
   let mapMode=0, mapMesh=null, mapTex=null, mapCtx=null, gridT=0;
-  const MAPMODES=['关闭','污染热力','地价'];
+  // map mode labels via tarr('mapmodes')
   function w2cell(x,z){ const gx=Math.floor((x+GSPAN/2)/GSPAN*GRID), gz=Math.floor((z+GSPAN/2)/GSPAN*GRID); return (gx<0||gz<0||gx>=GRID||gz>=GRID)?-1:gz*GRID+gx; }
   function buildGrid(){ gSrc.fill(0); gPol.fill(0);
     for(const b of buildings){ const i=w2cell(b.plot.x,b.plot.z); if(i<0) continue;
@@ -1402,7 +1648,7 @@
       id.data[i*4]=r; id.data[i*4+1]=g; id.data[i*4+2]=b; id.data[i*4+3]=160; }
     mapCtx.putImageData(id,0,0); mapTex.needsUpdate=true;
   }
-  function cycleMap(){ mapMode=(mapMode+1)%3; $('cMap').lastChild.textContent=MAPMODES[mapMode]; updateMap(); }
+  function cycleMap(){ mapMode=(mapMode+1)%3; $('cMap').lastChild.textContent=tarr('mapmodes')[mapMode]; updateMap(); }
 
   // ============ 程序化城市音效（WebAudio，无音频文件） ============
   let audioCtx=null, audioOn=true, snd={};
@@ -1439,99 +1685,100 @@
   function toggleAudio(){ audioOn=!audioOn; if(snd.master) snd.master.gain.setTargetAtTime(audioOn?0.5:0,audioCtx.currentTime,0.1); $('cSound').firstChild.textContent=audioOn?'🔊':'🔇'; if(audioCtx&&audioCtx.state==='suspended') audioCtx.resume(); }
 
   // ============ 市民人生 / 生老病死 / 市库经营 ============
-  const LIFEGOALS=['买一套房','升职加薪','找到对象','开一家店','环游世界','成为名人'];
+  // life goals via tarr('lifegoals'); citizens store lifeGoalI (index)
   let lifeT=0;
   function news(msg,cls){ logEv(msg,cls||''); }
   function removeCitizen(i){ const c=citizens[i]; if(!c) return; if(c.mesh&&peopleGroup) peopleGroup.remove(c.mesh); if(selected===c){ selected=null; $('cit').style.display='none'; } citizens.splice(i,1); }
-  function spawnImmigrant(baby){ const before=citizens.length; spawnCitizens(1); if(citizens.length===before) return null; const c=citizens[citizens.length-1]; if(baby){ c.age=0; c.role='student'; c.job='孩童'; } return c; }
-  function maybeLifeGoal(c){ if(c.lifeDone) return; const n=c.needs; let ok;
-    if(c.lifeGoal==='买一套房'||c.lifeGoal==='开一家店') ok=n.money>85;
-    else if(c.lifeGoal==='找到对象') ok=c.met>=3&&n.social>70;
-    else if(c.lifeGoal==='升职加薪') ok=n.money>75&&c.age>30;
-    else if(c.lifeGoal==='环游世界') ok=n.money>80&&n.fun>75;
+  function spawnImmigrant(baby){ const before=citizens.length; spawnCitizens(1); if(citizens.length===before) return null; const c=citizens[citizens.length-1]; if(baby){ c.age=0; c.role='student'; c.job=t('job_child'); } return c; }
+  function maybeLifeGoal(c){ if(c.lifeDone) return; const n=c.needs, gi=c.lifeGoalI; let ok;
+    if(gi===0||gi===3) ok=n.money>85;
+    else if(gi===2) ok=c.met>=3&&n.social>70;
+    else if(gi===1) ok=n.money>75&&c.age>30;
+    else if(gi===4) ok=n.money>80&&n.fun>75;
     else ok=c.met>=6;
-    if(ok&&Math.random()<0.25){ c.lifeDone=true; c.needs.mood=clamp(c.needs.mood+25,0,100); news('🎉 '+c.name+' 实现了人生愿望：'+c.lifeGoal,'good'); remember(c,'实现了愿望：'+c.lifeGoal); } }
+    if(ok&&Math.random()<0.25){ c.lifeDone=true; c.needs.mood=clamp(c.needs.mood+25,0,100); const g=tarr('lifegoals')[gi]; news(t('goalDone',c.name,g),'good'); remember(c,t('memGoal',g)); } }
   function cityYearTick(){
     const income=buildings.length*8 + sim.economy*2 + 40;
     const expense=buildings.length*5 + (sim.powerRatio<1?60:0) + infra.hospital*15 + infra.school*12;
     sim.treasury+=(income-expense);
-    if(sim.treasury<0){ sim.happiness=clamp(sim.happiness-4,0,100); if(Math.random()<0.5) news('⚠️ 市库赤字，公共服务受影响','bad'); }
+    if(sim.treasury<0){ sim.happiness=clamp(sim.happiness-4,0,100); if(Math.random()<0.5) news(t('deficit'),'bad'); }
     for(let i=citizens.length-1;i>=0;i--){ const c=citizens[i]; if(c===controlled) continue; c.age++;
       const dp=c.age>70?(c.age-70)*0.012+0.004:0.0015;
-      if(Math.random()<dp){ news('🕯 '+c.name+'（'+c.age+'岁）安详离世'); removeCitizen(i);
-        if(Math.random()<0.6){ const b=spawnImmigrant(true); if(b) news('👶 新生命降生：'+b.name); } else { const m=spawnImmigrant(false); if(m) news('🌟 新市民迁入：'+m.name+'（'+m.job+'）'); } }
+      if(Math.random()<dp){ news(t('passed',c.name,c.age)); removeCitizen(i);
+        if(Math.random()<0.6){ const b=spawnImmigrant(true); if(b) news(t('born',b.name)); } else { const m=spawnImmigrant(false); if(m) news(t('immigrant',m.name,m.job)); } }
       else maybeLifeGoal(c); } }
 
   // ============ 目标 / 剧本 / 危机 ============
   let goalBasePop=0;
   const GOALS=[
-    { id:'livable', name:'宜居之城', desc:'30 年内让幸福度 ≥ 90', dur:30, check:s=>s.happiness>=90, prog:s=>'幸福度 '+Math.round(s.happiness)+' / 90' },
-    { id:'carbon',  name:'碳中和',   desc:'30 年内 污染≤10 且 清洁能源≥80%', dur:30, check:s=>s.pollution<=10&&s.green>=0.8, prog:s=>'污染 '+Math.round(s.pollution)+'/≤10 · 清洁 '+Math.round(s.green*100)+'%/80%' },
-    { id:'metro',   name:'大都会',   desc:'40 年内人口增长 50%', dur:40, check:s=>s.population>=goalBasePop*1.5, prog:s=>'人口 '+fmt(s.population)+' / '+fmt(goalBasePop*1.5) },
-    { id:'rich',    name:'繁荣经济', desc:'30 年内经济指数 ≥ 160', dur:30, check:s=>s.economy>=160, prog:s=>'经济 '+Math.round(s.economy)+' / 160' }
+    { id:'livable', dur:30, check:s=>s.happiness>=90 },
+    { id:'carbon',  dur:30, check:s=>s.pollution<=10&&s.green>=0.8 },
+    { id:'metro',   dur:40, check:s=>s.population>=goalBasePop*1.5 },
+    { id:'rich',    dur:30, check:s=>s.economy>=160 }
   ];
+  const goalName=id=>tarr('goalDefs')[id].name, goalDesc=id=>tarr('goalDefs')[id].desc, goalProg=(id,s)=>tarr('goalDefs')[id].prog(s);
   let activeGoal=null, goalDeadline=0, goalDone=false, crisisT=0;
   function openGoals(){ const l=$('goalList'); l.innerHTML=''; const make=(name,desc,fn)=>{ const d=document.createElement('div'); d.className='g'; d.innerHTML='<b>'+name+'</b><em>'+desc+'</em>'; d.onclick=fn; l.appendChild(d); };
-    for(const g of GOALS) make(g.name,g.desc,()=>setGoal(g));
-    make('自由模式','无目标，随心经营',()=>{ activeGoal=null; goalDone=false; updateGoalUI(); $('goals').style.display='none'; logEv('🎯 自由模式',''); });
+    for(const g of GOALS) make(goalName(g.id),goalDesc(g.id),()=>setGoal(g));
+    make(t('goalFree'),t('goalFreeDesc'),()=>{ activeGoal=null; goalDone=false; updateGoalUI(); $('goals').style.display='none'; logEv(t('goalFreeLog'),''); });
     $('goals').style.display=$('goals').style.display==='block'?'none':'block'; }
-  function setGoal(g){ activeGoal=g; goalDone=false; goalBasePop=sim.population; goalDeadline=sim.yearF+g.dur; logEv('🎯 新目标：'+g.name+' —— '+g.desc,'good'); toast('🎯 '+g.name); $('goals').style.display='none'; updateGoalUI(); }
+  function setGoal(g){ activeGoal=g; goalDone=false; goalBasePop=sim.population; goalDeadline=sim.yearF+g.dur; logEv(t('goalNew',goalName(g.id),goalDesc(g.id)),'good'); toast('🎯 '+goalName(g.id)); $('goals').style.display='none'; updateGoalUI(); }
   function checkGoal(){ if(!activeGoal||goalDone) return;
     if(activeGoal.check(sim)){ goalDone=true; const score=Math.round(sim.happiness+sim.economy*0.5+sim.green*40+Math.max(0,goalDeadline-sim.yearF)*2);
-      logEv('🎉 目标达成！「'+activeGoal.name+'」最终得分 '+score,'good'); toast('🎉 达成！得分 '+score); activeGoal=null; updateGoalUI(); }
-    else if(sim.yearF>goalDeadline){ logEv('⏰ 目标超时未达成：'+activeGoal.name,'bad'); toast('⏰ 目标失败'); activeGoal=null; goalDone=true; updateGoalUI(); } }
+      logEv(t('goalAchieved',goalName(activeGoal.id),score),'good'); toast(t('goalScoreToast',score)); activeGoal=null; updateGoalUI(); }
+    else if(sim.yearF>goalDeadline){ logEv(t('goalTimeout',goalName(activeGoal.id)),'bad'); toast(t('goalFailToast')); activeGoal=null; goalDone=true; updateGoalUI(); } }
   function updateGoalUI(){ const e=$('goalTracker'); if(!activeGoal){ e.style.display='none'; return; }
-    e.style.display='block'; e.innerHTML='🎯 '+activeGoal.name+'　<span style="opacity:.85;font-weight:400;font-size:12px">'+activeGoal.prog(sim)+' · 剩 '+Math.max(0,Math.ceil(goalDeadline-sim.yearF))+' 年</span>'; }
-  function triggerCrisis(){ const c=pick([
-      {n:'🔥 热浪来袭',f:()=>{ sim.happiness=clamp(sim.happiness-12,0,100); }},
-      {n:'📉 经济衰退',f:()=>{ sim.economy=clamp(sim.economy-25,20,400); }},
-      {n:'⚡ 电力紧张',f:()=>{ sim.powerRatio=clamp(sim.powerRatio-0.4,0,2); sim.happiness=clamp(sim.happiness-6,0,100); }},
-      {n:'🦠 公共卫生事件',f:()=>{ sim.health=clamp(sim.health-0.3,0,1.3); sim.happiness=clamp(sim.happiness-8,0,100); }} ]);
-    c.f(); logEv(c.n+'！注意应对','warn'); toast(c.n); }
+    e.style.display='block'; e.innerHTML=t('goalTrack', goalName(activeGoal.id), goalProg(activeGoal.id,sim), Math.max(0,Math.ceil(goalDeadline-sim.yearF))); }
+  function triggerCrisis(){ const fx=[
+      ()=>{ sim.happiness=clamp(sim.happiness-12,0,100); },
+      ()=>{ sim.economy=clamp(sim.economy-25,20,400); },
+      ()=>{ sim.powerRatio=clamp(sim.powerRatio-0.4,0,2); sim.happiness=clamp(sim.happiness-6,0,100); },
+      ()=>{ sim.health=clamp(sim.health-0.3,0,1.3); sim.happiness=clamp(sim.happiness-8,0,100); } ];
+    const i=Math.floor(Math.random()*fx.length), nm=tarr('crises')[i]; fx[i](); logEv(t('crisisLog',nm),'warn'); toast(nm); }
 
   // ============ 存档 / 分享 ============
   let wantSnapshot=false;
   function serializeState(){ return { v:1, ts:Date.now(), city:data.city, lat:data.lat, lon:data.lon, population:data.population,
     sim:{ yearF:sim.yearF, population:sim.population, economy:sim.economy, tech:sim.tech, era:sim.era, pollution:sim.pollution, happiness:sim.happiness, green:sim.green, resilience:sim.resilience, popScale:sim.popScale } }; }
-  function saveLocal(){ try{ localStorage.setItem('datacity_save', JSON.stringify(serializeState())); logEv('💾 已保存「'+data.city+'」存档（演化 '+Math.floor(sim.yearF)+' 年）','good'); toast('已保存'); }catch(e){ logEv('保存失败：'+String(e).slice(0,40),'bad'); } }
+  function saveLocal(){ try{ localStorage.setItem('datacity_save', JSON.stringify(serializeState())); logEv(t('saved', data.city, Math.floor(sim.yearF)),'good'); toast(t('saveToast')); }catch(e){ logEv(t('saveFail',String(e).slice(0,40)),'bad'); } }
   async function loadLocal(){ let raw; try{ raw=localStorage.getItem('datacity_save'); }catch(e){}
-    if(!raw){ toast('没有存档'); logEv('没有找到本地存档','bad'); return; }
-    let s; try{ s=JSON.parse(raw); }catch(e){ logEv('存档损坏','bad'); return; }
-    logEv('📂 读取存档：'+s.city+'（演化 '+Math.floor(s.sim.yearF)+' 年）',''); toast('读取中…');
+    if(!raw){ toast(t('noSaveToast')); logEv(t('noSave'),'bad'); return; }
+    let s; try{ s=JSON.parse(raw); }catch(e){ logEv(t('loadCorrupt'),'bad'); return; }
+    logEv(t('loadReading',s.city,Math.floor(s.sim.yearF)),''); toast(t('loadToast'));
     data.city=s.city; data.lat=s.lat; data.lon=s.lon; data.population=s.population||0;
     const osm=await fetchOSM(550);
     if(osm && osm.buildings.length>=15){ if(realGroup){ scene.remove(realGroup); realGroup=null; } realMode=false; buildRealCity(osm); }
-    Object.assign(sim, s.sim); sim.started=true; updateStats(); updateLive(); toast('已读取「'+s.city+'」'); }
+    Object.assign(sim, s.sim); sim.started=true; updateStats(); updateLive(); toast(t('loadedToast',s.city)); }
   function snapshot(){ wantSnapshot=true; }
 
   // ============ 画质 / 性能档位 ============
-  let quality='高'; const QSET={'高':{pr:Math.min(devicePixelRatio,2),crowd:700},'中':{pr:1.1,crowd:350},'低':{pr:0.7,crowd:140}};
-  function cycleQuality(){ quality= quality==='高'?'中':quality==='中'?'低':'高'; const q=QSET[quality];
+  let quality='high'; const QSET={high:{pr:Math.min(devicePixelRatio,2),crowd:700},mid:{pr:1.1,crowd:350},low:{pr:0.7,crowd:140}};
+  function cycleQuality(){ quality= quality==='high'?'mid':quality==='mid'?'low':'high'; const q=QSET[quality], qn=I18N[LANG].qualities[quality];
     renderer.setPixelRatio(q.pr); renderer.setSize(innerWidth,innerHeight); if(composer) composer.setSize(innerWidth,innerHeight);
     spawnCrowd(roadKeys.length?q.crowd:Math.min(q.crowd,250));
-    $('cQual').lastChild.textContent='画质'+quality; logEv('⚙️ 画质档位切到：'+quality,''); toast('画质 '+quality); }
+    $('cQual').lastChild.textContent=t('qualLabel',qn); logEv(t('qualLog',qn),''); toast(t('qualToast',qn)); }
 
   // ============ GTA×MC 操作界面：化身层 HUD + 快捷栏放置建造 ============
-  const TOOLS=[ {k:'park',n:'公园',ic:'🌳'}, {k:'hospital',n:'医院',ic:'🏥'}, {k:'school',n:'学校',ic:'🎓'}, {k:'factory',n:'工厂',ic:'🏭'}, {k:'power',n:'电厂',ic:'⚡'}, {k:'wind',n:'风电',ic:'🍃'}, {t:'demolish',n:'拆除',ic:'⛏️'}, {t:'inspect',n:'检视',ic:'🔍'} ];
+  const TOOLS=[ {k:'park',n:'Park',ic:'🌳'}, {k:'hospital',n:'Hospital',ic:'🏥'}, {k:'school',n:'School',ic:'🎓'}, {k:'factory',n:'Factory',ic:'🏭'}, {k:'power',n:'Power',ic:'⚡'}, {k:'wind',n:'Wind',ic:'🍃'}, {t:'demolish',n:'Demolish',ic:'⛏️'}, {t:'inspect',n:'Inspect',ic:'🔍'} ];
   const BUILDCOST={park:300,hospital:800,school:600,factory:400,power:1000,wind:500};
   let hotSel=0, creative=true, ghost=null, radarCtx=null, hudT=0, waypoint=null;
-  function renderHotbar(){ const hb=$('hotbar'); if(!hb) return; hb.innerHTML=''; TOOLS.forEach((t,i)=>{ const lk=toolLocked(t); const d=document.createElement('div'); d.className='slot'+(i===hotSel?' sel':'')+(lk?' lock':''); d.innerHTML='<span class="sk">'+(i+1)+'</span><span class="si">'+t.ic+'</span>'+(lk?'<span class="slk">🔒</span>':''); d.onclick=()=>selectTool(i); hb.appendChild(d); }); $('toolName').textContent=TOOLS[hotSel].n+(toolLocked(TOOLS[hotSel])?'（未解锁）':''); }
+  function renderHotbar(){ const hb=$('hotbar'); if(!hb) return; hb.innerHTML=''; TOOLS.forEach((t,i)=>{ const lk=toolLocked(t); const d=document.createElement('div'); d.className='slot'+(i===hotSel?' sel':'')+(lk?' lock':''); d.innerHTML='<span class="sk">'+(i+1)+'</span><span class="si">'+t.ic+'</span>'+(lk?'<span class="slk">🔒</span>':''); d.onclick=()=>selectTool(i); hb.appendChild(d); }); $('toolName').textContent=TOOLS[hotSel].n+(toolLocked(TOOLS[hotSel])?' '+t('tool_locked'):''); }
   function selectTool(i){ hotSel=((i%TOOLS.length)+TOOLS.length)%TOOLS.length; renderHotbar(); updateGhost(); }
   function curTool(){ return TOOLS[hotSel]; }
   function ensureGhost(){ if(ghost) return; ghost=new THREE.Mesh(new THREE.BoxGeometry(4,4,4), new THREE.MeshBasicMaterial({color:0x5fd0ff,transparent:true,opacity:0.32,depthWrite:false})); ghost.visible=false; scene.add(ghost); }
   function updateGhost(){ ensureGhost(); ghost.visible=(camMode==='ground'&&!!curTool().k); }
   function groundPoint(){ const dir=new THREE.Vector3(); camera.getWorldDirection(dir); if(Math.abs(dir.y)<1e-4) return null; const tt=-camera.position.y/dir.y; if(tt<0||tt>700) return null; return { x:camera.position.x+dir.x*tt, z:camera.position.z+dir.z*tt }; }
   const snap=v=>Math.round(v/5)*5;
-  function placeAt(kind,x,z){ if(LOCKERA[kind]!=null && sim.era<LOCKERA[kind]){ toast('🔒 科技未解锁（需近未来）'); return; }
+  function placeAt(kind,x,z){ if(LOCKERA[kind]!=null && sim.era<LOCKERA[kind]){ toast(t('techLocked')); return; }
     const cost=creative?0:(BUILDCOST[kind]||300);
-    if(!creative && sim.treasury<cost){ toast('💰 市库不足'); return; }
+    if(!creative && sim.treasury<cost){ toast(t('treasuryLow')); return; }
     const plot={x,z};
     if(kind==='hospital') makeHospital(plot); else if(kind==='school') makeSchool(plot); else if(kind==='power') makePowerPlant(plot,sim.era>=2); else if(kind==='park') makePark(plot);
     else if(kind==='factory'){ plot.zone='ind'; makeBuilding(plot); }
     else if(kind==='wind'){ const g=new THREE.Group(); const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.25,0.4,12,8),smat(0xeeeeee)); pole.position.y=6; pole.castShadow=true; g.add(pole); const hub=new THREE.Group(); hub.position.set(0,12,0.5); for(let b=0;b<3;b++){ const bl=new THREE.Mesh(new THREE.BoxGeometry(0.3,7,0.6),smat(0xf4f4f4)); bl.position.y=3.5; const arm=new THREE.Group(); arm.add(bl); arm.rotation.z=b*Math.PI*2/3; hub.add(arm); } g.add(hub); g.position.set(x,0,z); activeGroup.add(g); turbines.push(hub); infra.wind++; sim.green=clamp(sim.green+0.03,0,0.98); }
-    if(!creative) sim.treasury-=cost; recountInfra(); updateStats(); toast('🧱 已建造：'+(curTool().n)); }
+    if(!creative) sim.treasury-=cost; recountInfra(); updateStats(); toast(t('built',curTool().n)); }
   function demolishAt(x,z){ let best=-1,bd=40; for(let i=0;i<buildings.length;i++){ const b=buildings[i]; if(b.fixed&&b.type==='tower') continue; const d=(b.plot.x-x)**2+(b.plot.z-z)**2; if(d<bd){ bd=d; best=i; } }
-    if(best>=0){ const b=buildings[best]; if(b.mesh&&b.mesh.parent) b.mesh.parent.remove(b.mesh); if(b.chim&&b.chim.parent) b.chim.parent.remove(b.chim); buildings.splice(best,1); recountInfra(); updateStats(); toast('⛏️ 已拆除'); } else toast('附近无可拆建筑'); }
+    if(best>=0){ const b=buildings[best]; if(b.mesh&&b.mesh.parent) b.mesh.parent.remove(b.mesh); if(b.chim&&b.chim.parent) b.chim.parent.remove(b.chim); buildings.splice(best,1); recountInfra(); updateStats(); toast(t('demolished')); } else toast(t('noDemolish')); }
   function tryPlaceOrDemolish(){ if(camMode!=='ground') return false; const t=curTool(); if(t.t==='inspect') return false;
     const g=groundPoint(); if(!g) return true; const x=snap(g.x), z=snap(g.z); if(t.t==='demolish') demolishAt(x,z); else if(t.k) placeAt(t.k,x,z); return true; }
   function drawRadar(){ if(!radarCtx){ const cv=$('radar'); if(!cv) return; radarCtx=cv.getContext('2d'); } const c=radarCtx, R=60, cx=60, cy=60;
@@ -1543,9 +1790,9 @@
     c.restore(); const a=controlled?controlled.dir:0; c.save(); c.translate(cx,cy); c.rotate(-a); c.fillStyle='#fff'; c.beginPath(); c.moveTo(0,-6); c.lineTo(4.5,5); c.lineTo(-4.5,5); c.closePath(); c.fill(); c.restore();
     c.strokeStyle='rgba(255,255,255,.3)'; c.lineWidth=2; c.beginPath(); c.arc(cx,cy,R-1,0,7); c.stroke(); }
   function updateVitals(){ if(!controlled) return; const n=controlled.needs; $('vHp').style.width=Math.round(n.mood)+'%'; $('vSta').style.width=Math.round(n.energy)+'%'; $('vHun').style.width=Math.round(n.fullness)+'%'; $('vMoney').textContent='$'+fmt(Math.round(sim.treasury)); }
-  function toggleCreative(){ creative=!creative; $('modeTag').innerHTML='模式 <b>'+(creative?'创造':'生存')+'</b>'; toast((creative?'创造':'生存')+'模式'); }
+  function toggleCreative(){ creative=!creative; const m=creative?t('mode_creative'):t('mode_survival'); $('modeTag').innerHTML=t('modeLabel','<b>'+m+'</b>'); toast(t('modeToast',m)); }
   function toggleView(){ if(camMode!=='ground'){ setMode('ground'); return; } const fp=controls.minDistance>2;
-    if(fp){ controls.minDistance=0.4; controls.maxDistance=3.2; controls.maxPolarAngle=Math.PI*0.85; toast('第一人称'); } else { controls.minDistance=4; controls.maxDistance=42; controls.maxPolarAngle=Math.PI*0.49; toast('第三人称'); } }
+    if(fp){ controls.minDistance=0.4; controls.maxDistance=3.2; controls.maxPolarAngle=Math.PI*0.85; toast(t('view_fp')); } else { controls.minDistance=4; controls.maxDistance=42; controls.maxPolarAngle=Math.PI*0.49; toast(t('view_tp')); } }
   function applyHud(){ const ground=camMode==='ground', sh=(id,disp)=>{ const e=$(id); if(e) e.style.display=ground?disp:'none'; };
     sh('radarWrap','block'); sh('vitals','flex'); sh('hotbar','flex'); sh('toolName','block'); sh('modeTag','block'); sh('crosshair','block');
     for(const id of ['live','stats','console']){ const e=$(id); if(e) e.style.display=ground?'none':''; }
@@ -1558,16 +1805,16 @@
   let driving=false, playerCar=null, waypointBeacon=null;
   function makeCar(){ const g=new THREE.Group(); const body=new THREE.Mesh(new THREE.BoxGeometry(2,0.8,4),smat(0x2a6fb0,{metalness:0.4,roughness:0.3})); body.position.y=0.7; body.castShadow=true; g.add(body); const cab=new THREE.Mesh(new THREE.BoxGeometry(1.8,0.7,2),smat(0x9fcdf0,{metalness:0.5,roughness:0.2})); cab.position.set(0,1.3,-0.2); g.add(cab); for(const dx of [-0.95,0.95]) for(const dz of [-1.4,1.4]){ const w=new THREE.Mesh(new THREE.CylinderGeometry(0.4,0.4,0.3,10),smat(0x111111)); w.rotation.z=Math.PI/2; w.position.set(dx,0.4,dz); g.add(w); } const hl=new THREE.Mesh(new THREE.BoxGeometry(1.7,0.2,0.2),new THREE.MeshStandardMaterial({color:0xfff3c0,emissive:0xfff0b0,emissiveIntensity:1.2})); hl.position.set(0,0.7,2.05); g.add(hl); return g; }
   function toggleDrive(){ if(camMode!=='ground'||!controlled) return;
-    if(driving){ driving=false; if(playerCar) playerCar.visible=false; if(controlled.mesh) controlled.mesh.visible=true; toast('🚶 下车'); }
-    else { if(!playerCar){ playerCar=makeCar(); scene.add(playerCar); } playerCar.visible=true; playerCar.position.set(controlled.x,0,controlled.z); if(controlled.mesh) controlled.mesh.visible=false; driving=true; toast('🚗 上车 · WASD 驾驶 · F 下车'); } }
+    if(driving){ driving=false; if(playerCar) playerCar.visible=false; if(controlled.mesh) controlled.mesh.visible=true; toast(t('drive_off')); }
+    else { if(!playerCar){ playerCar=makeCar(); scene.add(playerCar); } playerCar.visible=true; playerCar.position.set(controlled.x,0,controlled.z); if(controlled.mesh) controlled.mesh.visible=false; driving=true; toast(t('drive_on')); } }
   function switchCharacter(){ if(!citizens.length) return; const cx=controlled?controlled.x:0, cz=controlled?controlled.z:0; let best=null,bd=1e18;
     for(const c of citizens){ if(c===controlled) continue; const d=(c.x-cx)**2+(c.z-cz)**2; if(d<bd){ bd=d; best=c; } }
-    if(best){ if(driving) toggleDrive(); if(controlled){ controlled.redecide=true; if(controlled.mesh) controlled.mesh.visible=true; } controlled=best; selected=best; if(camMode!=='ground') setMode('ground'); else controls.target.set(best.x,1.2,best.z); fillPanel(); $('cit').style.display='block'; toast('🔄 切换到 '+best.name+'（'+best.job+'）'); } }
+    if(best){ if(driving) toggleDrive(); if(controlled){ controlled.redecide=true; if(controlled.mesh) controlled.mesh.visible=true; } controlled=best; selected=best; if(camMode!=='ground') setMode('ground'); else controls.target.set(best.x,1.2,best.z); fillPanel(); $('cit').style.display='block'; toast(t('switched',best.name,best.job)); } }
   function showWheel(){ if(camMode!=='ground'||$('wheel').style.display==='block') return;
-    const opts=[ {ic:'🛰',n:'上帝视角',f:()=>setMode('god')}, {ic:'🚗',n:driving?'下车':'上车',f:toggleDrive}, {ic:'🔄',n:'切换角色',f:switchCharacter}, {ic:'👁',n:'视角',f:toggleView}, {ic:'🗺',n:'大地图',f:toggleMap}, {ic:creative?'⛏':'🎨',n:creative?'生存':'创造',f:toggleCreative} ];
+    const opts=[ {ic:'🛰',n:t('w_god'),f:()=>setMode('god')}, {ic:'🚗',n:driving?t('w_drive_off'):t('w_drive_on'),f:toggleDrive}, {ic:'🔄',n:t('w_switch'),f:switchCharacter}, {ic:'👁',n:t('w_view'),f:toggleView}, {ic:'🗺',n:t('w_map'),f:toggleMap}, {ic:creative?'⛏':'🎨',n:creative?t('mode_survival'):t('mode_creative'),f:toggleCreative} ];
     const w=$('wheel'); w.innerHTML=''; opts.forEach((o,i)=>{ const a=(i/opts.length)*Math.PI*2-Math.PI/2; const d=document.createElement('div'); d.className='wb'; d.style.left=(140+Math.cos(a)*108)+'px'; d.style.top=(140+Math.sin(a)*108)+'px'; d.innerHTML='<span class="wi">'+o.ic+'</span>'+o.n; d.onclick=()=>{ o.f(); hideWheel(); }; w.appendChild(d); }); w.style.display='block'; }
   function hideWheel(){ $('wheel').style.display='none'; }
-  function setWaypoint(x,z){ waypoint={x,z}; if(!waypointBeacon){ waypointBeacon=new THREE.Mesh(new THREE.CylinderGeometry(1.6,1.6,46,14,1,true), new THREE.MeshBasicMaterial({color:0xffd24a,transparent:true,opacity:0.32,side:THREE.DoubleSide,depthWrite:false})); scene.add(waypointBeacon); } waypointBeacon.position.set(x,23,z); waypointBeacon.visible=true; toast('📍 已设置路点'); }
+  function setWaypoint(x,z){ waypoint={x,z}; if(!waypointBeacon){ waypointBeacon=new THREE.Mesh(new THREE.CylinderGeometry(1.6,1.6,46,14,1,true), new THREE.MeshBasicMaterial({color:0xffd24a,transparent:true,opacity:0.32,side:THREE.DoubleSide,depthWrite:false})); scene.add(waypointBeacon); } waypointBeacon.position.set(x,23,z); waypointBeacon.visible=true; toast(t('wpSet')); }
   function toggleMap(){ const m=$('map'); if(getComputedStyle(m).display!=='none'){ m.style.display='none'; } else { m.style.display='flex'; drawMap(); } }
   function drawMap(){ const cv=$('mapCanvas'),c=cv.getContext('2d'),W=520,span=300,S=W/span,w2m=(x,z)=>[W/2+x*S,W/2+z*S];
     c.clearRect(0,0,W,W); c.fillStyle='rgba(20,28,40,.6)'; c.fillRect(0,0,W,W);
@@ -1603,18 +1850,18 @@
     if(sim.quakeShake>0){ sim.quakeShake=Math.max(0,sim.quakeShake-dt*1.5); const s=sim.quakeShake; camera.position.x+=rand(-s,s)*0.5; camera.position.y+=rand(-s,s)*0.3; }
 
     if(sim.started&&sim.running){ simTick(dt*sim.speed*0.3); statT+=dt; if(statT>0.25){ statT=0; updateStats(); } }
-    liveT+=dt; if(liveT>1){ liveT=0; if(sim.started) $('vTime').textContent=new Date().toLocaleTimeString('zh-CN'); updateAudio(); }
+    liveT+=dt; if(liveT>1){ liveT=0; if(sim.started) $('vTime').textContent=new Date().toLocaleTimeString(LANG==='zh'?'zh-CN':'en-US'); updateAudio(); }
     if(toastT>0){ toastT-=dt; if(toastT<=0) $('toast').style.opacity='0'; }
     if(riverWater){ const p=riverWater.geometry.attributes.position, a=p.array, t=now/1000; for(let i=1;i<a.length;i+=3){ a[i]=Math.sin(riverBase[i-1]*0.2+t*1.4)*0.12; } p.needsUpdate=true; }
 
     if(citizens.length){ updateCitizens(dt); updateControlled(dt); updatePanel(dt); socialT+=dt; if(socialT>=1){ socialT=0; socialTick(); } updateBubbles(dt); if(recentQuake>0) recentQuake-=dt; }
     updateCameraMode(dt); updateInterior();
     if(camMode==='ground'){ hudT+=dt; if(hudT>0.12){ hudT=0; drawRadar(); updateVitals(); } if(ghost&&ghost.visible){ const gp=groundPoint(); if(gp) ghost.position.set(snap(gp.x),2,snap(gp.z)); } }
-    if(waypoint&&controlled&&(waypoint.x-controlled.x)**2+(waypoint.z-controlled.z)**2<25){ waypoint=null; if(waypointBeacon) waypointBeacon.visible=false; toast('📍 已到达路点'); }
+    if(waypoint&&controlled&&(waypoint.x-controlled.x)**2+(waypoint.z-controlled.z)**2<25){ waypoint=null; if(waypointBeacon) waypointBeacon.visible=false; toast(t('wpReached')); }
     if(waypointBeacon&&waypointBeacon.visible) waypointBeacon.rotation.y+=dt;
     gridT+=dt; if(gridT>=0.4){ gridT=0; if(sim.started) stepGrid(); updateMap(); }
     controls.update(); composer.render();
-    if(wantSnapshot){ wantSnapshot=false; try{ const a=document.createElement('a'); a.href=renderer.domElement.toDataURL('image/png'); a.download='数据城市-'+data.city+'.png'; a.click(); logEv('📷 已保存城市快照 PNG','good'); toast('📷 已保存快照'); }catch(e){ logEv('快照失败','bad'); } }
+    if(wantSnapshot){ wantSnapshot=false; try{ const a=document.createElement('a'); a.href=renderer.domElement.toDataURL('image/png'); a.download=t('snapName',data.city); a.click(); logEv(t('snapSaved'),'good'); toast(t('snapToast')); }catch(e){ logEv(t('snapFail'),'bad'); } }
   }
   function animateFall(pts,d,drift){ if(!pts.visible)return; const a=pts.geometry.attributes.position.array;
     for(let i=1;i<a.length;i+=3){ a[i]-=d; if(drift)a[i-1]+=Math.sin(a[i]*0.1)*0.02; if(a[i]<0){ a[i]=80; a[i-1]=rand(-70,70); a[i+1]=rand(-70,70); } } pts.geometry.attributes.position.needsUpdate=true; }

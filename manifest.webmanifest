@@ -1,8 +1,8 @@
 {
-  "name": "模拟世界 · 数据城市",
-  "short_name": "数据城市",
-  "description": "用真实世界数据驱动、可演化向未来的 3D 城市模拟器",
-  "lang": "zh-CN",
+  "name": "Data City · Simulated World",
+  "short_name": "Data City",
+  "description": "A 3D city simulator driven by real-world data, evolving toward the future",
+  "lang": "en",
   "start_url": "./city.html",
   "scope": "./",
   "display": "standalone",

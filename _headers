@@ -1,0 +1,9 @@
+# Cloudflare Pages/Workers headers — don't edge-cache HTML/SW/manifest so updates show immediately
+/
+  Cache-Control: no-cache
+/*.html
+  Cache-Control: no-cache
+/sw.js
+  Cache-Control: no-cache
+/manifest.webmanifest
+  Cache-Control: no-cache

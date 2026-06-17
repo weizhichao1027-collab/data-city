@@ -1,5 +1,5 @@
-// 数据城市 PWA Service Worker —— 离线缓存应用外壳 + 3D 引擎；实时数据始终走网络
-const CACHE = 'datacity-v1';
+// Data City PWA Service Worker — offline app shell + 3D engine; live data & HTML try network first
+const CACHE = 'datacity-v2';
 const CORE = [
   './', './index.html', './city.html', './explore.html',
   './manifest.webmanifest', './icon-192.png', './icon-512.png',
@@ -22,12 +22,21 @@ self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  // 实时数据接口：始终走网络以保证新鲜，失败再回退缓存
+  // Live-data APIs: always network, fall back to cache on failure
   if (/open-meteo|overpass|earthquake\.usgs|coingecko|er-api|bigdatacloud|esm\.run|geocoding-api/.test(url.host + url.pathname)) {
     e.respondWith(fetch(req).catch(() => caches.match(req)));
     return;
   }
-  // 应用外壳 + 引擎：缓存优先，命中即返回；否则联网取并写入缓存
+  // HTML / navigation / SW / manifest: network-first so updates show; cache fallback when offline
+  const isDoc = req.mode === 'navigate' || /\.html$|\/$|sw\.js$|\.webmanifest$/.test(url.pathname);
+  if (url.origin === location.origin && isDoc) {
+    e.respondWith(
+      fetch(req).then(res => { if (res && res.ok) { const cp = res.clone(); caches.open(CACHE).then(c => c.put(req, cp)); } return res; })
+        .catch(() => caches.match(req).then(c => c || caches.match('./index.html')))
+    );
+    return;
+  }
+  // App-shell engine + icons: cache-first (immutable, big)
   e.respondWith(
     caches.match(req).then(cached => cached || fetch(req).then(res => {
       if (res && res.ok && (url.origin === location.origin || url.host.includes('unpkg'))) {
