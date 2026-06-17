@@ -1853,7 +1853,10 @@
     const o=audioCtx.createOscillator(), g=audioCtx.createGain(); o.type='sawtooth'; o.frequency.setValueAtTime(440,t); o.frequency.linearRampToValueAtTime(880,t+0.6); o.frequency.linearRampToValueAtTime(440,t+1.2);
     g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.12,t+0.1); g.gain.linearRampToValueAtTime(0,t+1.5); o.connect(g); g.connect(snd.master); o.start(t); o.stop(t+1.6);
   }
-  function toggleAudio(){ audioOn=!audioOn; if(snd.master) snd.master.gain.setTargetAtTime(audioOn?0.5:0,audioCtx.currentTime,0.1); $('cSound').firstChild.textContent=audioOn?'🔊':'🔇'; if(audioCtx&&audioCtx.state==='suspended') audioCtx.resume(); }
+  function toggleAudio(){ audioOn=!audioOn; if(snd.master) snd.master.gain.setTargetAtTime(audioOn?0.5:0,audioCtx.currentTime,0.1); $('cSound').firstChild.textContent=audioOn?'🔊':'🔇'; if(audioCtx&&audioCtx.state==='suspended'&&audioOn) audioCtx.resume(); }
+  // 页面切到后台 / 最小化 / 关闭时挂起音频（修复：切走后环境音 drone 还在响）；回到前台再恢复
+  document.addEventListener('visibilitychange',()=>{ if(!audioCtx) return; try{ if(document.hidden) audioCtx.suspend(); else if(audioOn) audioCtx.resume(); }catch(e){} });
+  window.addEventListener('pagehide',()=>{ if(audioCtx){ try{ audioCtx.suspend(); }catch(e){} } });
 
   // ============ 市民人生 / 生老病死 / 市库经营 ============
   // life goals via tarr('lifegoals'); citizens store lifeGoalI (index)
