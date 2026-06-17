@@ -3,7 +3,7 @@
   "short_name": "数据城市",
   "description": "用真实世界数据驱动、可演化向未来的 3D 城市模拟器",
   "lang": "zh-CN",
-  "start_url": "./index.html",
+  "start_url": "./city.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",

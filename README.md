@@ -10,7 +10,7 @@
 >
 > 装好后有图标、独立全屏运行，跟原生 app 一样；离线也能打开（联网时再拉实时数据）。
 
-这个文件夹里有两个独立的、用 [Three.js](https://threejs.org/) 做的 3D 网页项目，浏览器直接运行。打开网站是一个菜单页（`index.html`），分别进入 🌆 数据城市（`city.html`）和 🌲 开放世界探索（`explore.html`）。
+这个文件夹里有用 [Three.js](https://threejs.org/) 做的 3D 网页项目，浏览器直接运行。**打开网站会直接进入 🌆 数据城市（`city.html`）**（`index.html` 仅作即时跳转）。另有一个 🌲 开放世界探索（`explore.html`），可直接用网址打开。
 
 ## 🚀 更新部署
 
