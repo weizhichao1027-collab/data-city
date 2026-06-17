@@ -1,6 +1,19 @@
-# 模拟世界
+# 模拟世界 · Simulated World
 
-这个文件夹里有两个独立的、用 [Three.js](https://threejs.org/) 做的 3D 网页项目，浏览器直接运行。
+> 🌐 **在线体验：<https://weizhichao1027-collab.github.io/data-city/>**　（GitHub Pages · HTTPS · 手机/电脑均可）
+
+这个文件夹里有两个独立的、用 [Three.js](https://threejs.org/) 做的 3D 网页项目，浏览器直接运行。打开网站是一个菜单页（`index.html`），分别进入 🌆 数据城市（`city.html`）和 🌲 开放世界探索（`explore.html`）。
+
+## 🚀 更新部署
+
+改完代码后，一条命令即可重新上线：
+
+```bash
+cd "/Users/weizhichao30/Desktop/模拟世界"
+git add -A && git commit -m "update" && git push
+```
+
+GitHub Pages 会在约 1 分钟内自动重新构建。仓库：<https://github.com/weizhichao1027-collab/data-city>
 
 | 文件 | 是什么 |
 | --- | --- |
