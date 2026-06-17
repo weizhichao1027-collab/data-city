@@ -1,6 +1,12 @@
 # 模拟世界 · Simulated World
 
 > 🌐 **在线体验：<https://weizhichao1027-collab.github.io/data-city/>**　（GitHub Pages · HTTPS · 手机/电脑均可）
+>
+> 📱 **可安装为 app（PWA）**：用手机/电脑浏览器打开上面的地址 →
+> - **安卓 / Chrome / Edge**：地址栏或菜单里点「安装/添加到主屏幕」
+> - **iPhone / Safari**：点「分享」→「添加到主屏幕」
+>
+> 装好后有图标、独立全屏运行，跟原生 app 一样；离线也能打开（联网时再拉实时数据）。
 
 这个文件夹里有两个独立的、用 [Three.js](https://threejs.org/) 做的 3D 网页项目，浏览器直接运行。打开网站是一个菜单页（`index.html`），分别进入 🌆 数据城市（`city.html`）和 🌲 开放世界探索（`explore.html`）。
 
