@@ -1942,7 +1942,9 @@
   function startRec(){ try{ const mime=pickMime(); if(!mime||!renderer.domElement.captureStream) return null;
       const mr=new MediaRecorder(renderer.domElement.captureStream(30),{mimeType:mime,videoBitsPerSecond:6000000}); mr._c=[]; mr._mime=mime;
       mr.ondataavailable=e=>{ if(e.data&&e.data.size) mr._c.push(e.data); }; mr.start(); return mr; }catch(e){ return null; } }
-  function stopRec(mr,cb){ if(!mr){ cb(null); return; } try{ mr.onstop=()=>{ try{ cb(new Blob(mr._c,{type:mr._mime})); }catch(e){ cb(null); } }; mr.stop(); }catch(e){ cb(null); } }
+  function stopRec(mr,cb){ if(!mr){ cb(null); return; } let done=false; const fin=b=>{ if(done) return; done=true; cb(b); };
+    try{ mr.onstop=()=>{ try{ fin(new Blob(mr._c,{type:mr._mime})); }catch(e){ fin(null); } }; mr.stop(); }catch(e){ fin(null); }
+    setTimeout(()=>fin(mr._c&&mr._c.length?new Blob(mr._c,{type:mr._mime}):null), 2500); }   // onstop 不触发时的兜底
 
   // — 时光机主流程：状态机由渲染循环驱动（截帧必须在 composer.render() 之后）—
   let vision=null, visionBusy=false, curVideo=null, curShots=null;
@@ -1951,10 +1953,13 @@
     const wasRun=sim.running, ar=controls.autoRotate, ars=controls.autoRotateSpeed;
     sim.running=false; controls.autoRotate=true; controls.autoRotateSpeed=2.6;
     $('ui').classList.add('cinema'); $('cinemaTag').style.display='block';
-    vision={ phase:'before', t0:0, st:0, ms:5600, y0:sim.yearF, years:95, startYr:startYear+Math.floor(sim.yearF), before:null, after:null, endYr:0, rec:null, video:null,
+    vision={ phase:'before', t0:0, st:0, ms:5600, y0:sim.yearF, years:95, startYr:startYear+Math.floor(sim.yearF), before:null, after:null, endYr:0, rec:null, video:null, wd:null,
       restore:()=>{ sim.running=wasRun; controls.autoRotate=ar; controls.autoRotateSpeed=ars; $('ui').classList.remove('cinema'); $('cinemaTag').style.display='none'; } };
+    vision.wd=setTimeout(hardFinishVision, 13000);   // 看门狗：无论如何 13s 内收尾，绝不卡在影院模式
     toast(t('visionStart'));
   }
+  // 强制收尾：rAF 暂停 / MediaRecorder 不回调等异常时兜底，保证恢复 HUD
+  function hardFinishVision(){ const v=vision; if(!v) return; if(!v.before) v.before=grabFrame(); if(!v.after) v.after=grabFrame(); if(v.rec){ try{ v.rec.stop(); }catch(e){} } if(!v.endYr) v.endYr=startYear+Math.floor(sim.yearF); finishVision(); }
   function grabFrame(){ try{ return renderer.domElement.toDataURL('image/png'); }catch(e){ return null; } }
   function stepVision(now){ const v=vision; if(!v) return;
     if(v.phase==='before'){ v.before=grabFrame(); v.rec=startRec(); v.t0=now; v.phase='evolve'; }
@@ -1963,7 +1968,7 @@
     else if(v.phase==='settle'){ if(now-v.st>350){ updateStats(); updateLive(); v.after=grabFrame(); v.endYr=startYear+Math.floor(sim.yearF); v.phase='wait';
         stopRec(v.rec, blob=>{ if(vision===v){ v.video=blob; finishVision(); } }); } }
   }
-  function finishVision(){ const v=vision; if(!v) return; vision=null; v.restore();
+  function finishVision(){ const v=vision; if(!v) return; if(v.wd){ clearTimeout(v.wd); v.wd=null; } vision=null; v.restore();
     showVisionUI(v.before,v.after,v.startYr,v.endYr,v.video); visionBusy=false; }
 
   // — before/after 对比浮层 + 拖动滑块 —
