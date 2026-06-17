@@ -1,0 +1,1617 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>数据城市 · 现实驱动 · 未来演化模拟器</title>
+<style>
+  :root{ --panel:rgba(13,19,28,0.74); --bd:rgba(255,255,255,0.12); --acc:#5fd0ff; --good:#56e08a; --bad:#ff7a7a; --warn:#ffcf6b; --text:#e9f3ff; }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ width:100%; height:100%; overflow:hidden; background:#070b12; }
+  body{ font-family:"PingFang SC","Microsoft YaHei","Segoe UI",system-ui,sans-serif; color:var(--text); -webkit-font-smoothing:antialiased; }
+  canvas{ display:block; }
+  #ui{ position:fixed; inset:0; pointer-events:none; z-index:10; }
+  .panel{ background:var(--panel); border:1px solid var(--bd); border-radius:13px; backdrop-filter:blur(10px); box-shadow:0 6px 26px rgba(0,0,0,.35); }
+
+  #live{ position:absolute; top:12px; left:12px; width:256px; padding:12px 14px; pointer-events:auto; }
+  #live h3{ font-size:12px; letter-spacing:1px; opacity:.6; font-weight:600; margin-bottom:9px; display:flex; align-items:center; gap:6px; }
+  .dot{ width:7px; height:7px; border-radius:50%; background:var(--bad); box-shadow:0 0 6px currentColor; color:var(--bad); }
+  .dot.on{ background:var(--good); color:var(--good); }
+  .row{ display:flex; justify-content:space-between; align-items:center; font-size:13px; padding:3.5px 0; border-bottom:1px solid rgba(255,255,255,.05); }
+  .row:last-child{ border-bottom:0; }
+  .row .k{ opacity:.72; } .row .v{ font-variant-numeric:tabular-nums; font-weight:600; text-align:right; }
+  .v small{ font-weight:400; opacity:.6; }
+  .up{ color:var(--good); } .down{ color:var(--bad); }
+  #cityInput{ width:100%; margin-top:10px; display:flex; gap:6px; }
+  #cityInput input{ flex:1; background:rgba(255,255,255,.08); border:1px solid var(--bd); border-radius:8px; color:var(--text); padding:6px 9px; font-size:12.5px; font-family:inherit; }
+  #cityInput button{ background:rgba(95,208,255,.18); border:1px solid rgba(95,208,255,.4); color:var(--acc); border-radius:8px; padding:0 11px; font-size:12.5px; cursor:pointer; font-family:inherit; }
+
+  #stats{ position:absolute; top:12px; right:12px; width:252px; max-height:calc(100vh - 140px); overflow:auto; padding:13px 15px; pointer-events:auto; }
+  #stats::-webkit-scrollbar{ width:0; }
+  #year{ font-size:13px; opacity:.65; letter-spacing:1px; }
+  #yearBig{ font-size:29px; font-weight:800; letter-spacing:1px; margin:-2px 0 2px; }
+  #era{ display:inline-block; font-size:12px; padding:2px 9px; border-radius:20px; background:rgba(95,208,255,.16); border:1px solid rgba(95,208,255,.35); color:var(--acc); margin-bottom:10px; }
+  .stat{ margin:8px 0; }
+  .stat .lab{ display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:4px; }
+  .stat .lab b{ font-variant-numeric:tabular-nums; }
+  .bar{ height:6px; border-radius:4px; background:rgba(255,255,255,.1); overflow:hidden; }
+  .bar i{ display:block; height:100%; border-radius:4px; transition:width .5s, background .5s; }
+  .svc{ display:grid; grid-template-columns:repeat(5,1fr); gap:5px; margin-top:11px; padding-top:10px; border-top:1px solid rgba(255,255,255,.08); }
+  .sv{ background:rgba(255,255,255,.05); border-radius:8px; padding:6px 2px; text-align:center; font-size:16px; }
+  .sv b{ display:block; font-size:11.5px; font-weight:700; margin-top:2px; font-variant-numeric:tabular-nums; }
+  .sv .nm{ display:block; font-size:9px; opacity:.5; font-weight:400; }
+
+  #console{ position:absolute; bottom:12px; left:50%; transform:translateX(-50%); padding:9px 11px; display:flex; gap:6px; align-items:center; pointer-events:auto; flex-wrap:wrap; justify-content:center; max-width:97vw; }
+  .btn{ display:flex; flex-direction:column; align-items:center; gap:2px; background:rgba(255,255,255,.06); border:1px solid var(--bd); border-radius:11px; padding:7px 10px; font-size:11.5px; cursor:pointer; transition:.15s; min-width:56px; }
+  .btn:hover{ background:rgba(95,208,255,.16); border-color:rgba(95,208,255,.45); transform:translateY(-2px); }
+  .btn:active{ transform:translateY(0) scale(.96); }
+  .btn .ic{ font-size:19px; }
+  .btn.build{ border-color:rgba(86,224,138,.3); }
+  .btn.build:hover{ background:rgba(86,224,138,.16); border-color:rgba(86,224,138,.5); }
+  .sep{ width:1px; height:36px; background:var(--bd); margin:0 2px; }
+  #speed{ font-weight:700; color:var(--acc); }
+
+  #log{ position:absolute; left:12px; bottom:12px; width:310px; max-width:42vw; display:flex; flex-direction:column-reverse; gap:5px; pointer-events:none; }
+  .ev{ background:var(--panel); border:1px solid var(--bd); border-left:3px solid var(--acc); border-radius:8px; padding:6px 10px; font-size:12.5px; backdrop-filter:blur(8px); opacity:0; transform:translateX(-12px); animation:slidein .35s forwards; }
+  .ev.warn{ border-left-color:var(--warn); } .ev.bad{ border-left-color:var(--bad); } .ev.good{ border-left-color:var(--good); }
+  @keyframes slidein{ to{ opacity:1; transform:none; } }
+  #toast{ position:absolute; top:17%; left:50%; transform:translate(-50%,-50%); font-size:23px; font-weight:700; text-shadow:0 2px 14px rgba(0,0,0,.7); opacity:0; transition:opacity .4s; text-align:center; pointer-events:none; }
+
+  #overlay{ position:absolute; inset:0; z-index:20; display:flex; align-items:center; justify-content:center; background:radial-gradient(120% 120% at 50% 35%, rgba(10,16,24,.4), rgba(5,8,13,.9)); pointer-events:auto; transition:opacity .5s; }
+  .card{ text-align:center; max-width:580px; padding:0 26px; }
+  .card h1{ font-size:38px; letter-spacing:2px; margin-bottom:8px; background:linear-gradient(120deg,#bfefff,#7fb4ff,#c8a6ff); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+  .card p{ font-size:14px; opacity:.82; line-height:1.7; margin-bottom:8px; }
+  .card .feat{ font-size:12.5px; opacity:.66; line-height:1.9; margin:14px 0 22px; }
+  .start{ display:inline-block; font-size:17px; font-weight:700; padding:13px 32px; border-radius:13px; letter-spacing:1px; cursor:pointer; background:linear-gradient(120deg,#3aa6ff,#5fd0ff); color:#04121e; box-shadow:0 8px 30px rgba(60,170,255,.45); }
+  .tip{ margin-top:16px; font-size:12px; opacity:.5; line-height:1.6; }
+  #loadnote{ margin-top:14px; font-size:12.5px; opacity:.7; min-height:18px; }
+  .fade{ opacity:0 !important; pointer-events:none !important; }
+  #err{ position:absolute; inset:0; z-index:30; display:none; align-items:center; justify-content:center; padding:30px; text-align:center; background:#070b12; }
+  #err .box{ max-width:560px; padding:28px; line-height:1.7; }
+  #err code{ background:rgba(255,255,255,.1); padding:2px 7px; border-radius:5px; }
+  @media (max-width:760px){ #live,#stats{ width:180px; font-size:12px; } #log{ display:none; } .card h1{ font-size:29px; } }
+
+  /* 市民信息 / 干预面板 */
+  #cit{ position:absolute; right:12px; bottom:96px; width:238px; padding:12px 14px; pointer-events:auto; display:none; }
+  .cit-h{ display:flex; justify-content:space-between; align-items:center; font-size:16px; font-weight:700; margin-bottom:1px; }
+  #citClose{ cursor:pointer; opacity:.55; font-size:14px; font-weight:400; } #citClose:hover{ opacity:1; }
+  .cit-j{ font-size:12.5px; color:var(--acc); font-weight:600; } .cit-s{ font-size:12px; opacity:.72; margin:3px 0 9px; }
+  .cit-n{ font-size:11px; display:grid; grid-template-columns:auto 1fr; gap:4px 8px; align-items:center; }
+  .nb{ height:6px; border-radius:4px; background:rgba(255,255,255,.12); overflow:hidden; } .nb i{ display:block; height:100%; border-radius:4px; transition:width .3s; }
+  .cit-send{ display:flex; gap:5px; margin:10px 0 6px; } .cit-send button,.cit-act button{ flex:1; background:rgba(255,255,255,.07); border:1px solid var(--bd); color:var(--text); border-radius:7px; padding:5px 3px; font-size:11.5px; cursor:pointer; font-family:inherit; transition:.12s; }
+  .cit-send button:hover,.cit-act button:hover{ background:rgba(95,208,255,.18); border-color:rgba(95,208,255,.4); }
+  .cit-act{ display:grid; grid-template-columns:1fr 1fr; gap:5px; }
+  #ghint{ position:absolute; bottom:86px; left:50%; transform:translateX(-50%); display:none; background:var(--panel); border:1px solid var(--bd); border-radius:9px; padding:7px 14px; font-size:12px; backdrop-filter:blur(8px); pointer-events:none; white-space:nowrap; }
+  #eprompt{ position:absolute; bottom:130px; left:50%; transform:translateX(-50%); display:none; background:rgba(95,208,255,.22); border:1px solid rgba(95,208,255,.55); color:#eaf6ff; border-radius:10px; padding:9px 16px; font-size:14px; font-weight:700; letter-spacing:1px; backdrop-filter:blur(8px); pointer-events:none; white-space:nowrap; box-shadow:0 4px 18px rgba(0,0,0,.3); }
+  #goalTracker{ position:absolute; top:13px; left:50%; transform:translateX(-50%); display:none; background:var(--panel); border:1px solid rgba(95,208,255,.4); border-radius:11px; padding:7px 16px; font-size:13.5px; font-weight:700; backdrop-filter:blur(8px); text-align:center; box-shadow:0 4px 18px rgba(0,0,0,.3); }
+  #goals{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); display:none; z-index:16; padding:18px 20px; width:312px; pointer-events:auto; }
+  #goals h3{ font-size:16px; margin-bottom:12px; text-align:center; }
+  #goals .g{ background:rgba(255,255,255,.06); border:1px solid var(--bd); border-radius:10px; padding:10px 12px; margin-bottom:8px; cursor:pointer; transition:.12s; }
+  #goals .g:hover{ background:rgba(95,208,255,.16); border-color:rgba(95,208,255,.45); }
+  #goals .g b{ font-size:14px; } #goals .g em{ display:block; font-style:normal; font-size:12px; opacity:.68; margin-top:2px; }
+  /* GTA×MC 化身层 HUD */
+  #radarWrap{ position:absolute; left:14px; bottom:14px; pointer-events:none; display:none; }
+  #radar{ border-radius:50%; border:2px solid rgba(255,255,255,.28); background:rgba(8,12,18,.55); box-shadow:0 4px 20px rgba(0,0,0,.45); }
+  #vitals{ position:absolute; left:138px; bottom:18px; width:122px; display:none; flex-direction:column; gap:5px; pointer-events:none; }
+  .vit{ display:flex; align-items:center; gap:6px; font-size:12px; }
+  .vit i{ width:15px; text-align:center; font-style:normal; }
+  .vbar{ flex:1; height:7px; background:rgba(255,255,255,.16); border-radius:4px; overflow:hidden; }
+  .vbar span{ display:block; height:100%; border-radius:4px; transition:width .25s; }
+  #vMoney{ font-size:14px; font-weight:700; color:#ffd24a; margin-top:3px; }
+  #hotbar{ position:absolute; bottom:14px; left:50%; transform:translateX(-50%); display:none; gap:5px; pointer-events:auto; }
+  .slot{ width:46px; height:46px; border-radius:9px; border:1px solid var(--bd); background:var(--panel); backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; position:relative; cursor:pointer; transition:.12s; }
+  .slot:hover{ background:rgba(95,208,255,.14); }
+  .slot.sel{ border:2px solid var(--acc); background:rgba(95,208,255,.2); }
+  .slot .si{ font-size:21px; } .slot .sk{ position:absolute; top:1px; left:4px; font-size:10px; opacity:.55; }
+  #toolName{ position:absolute; bottom:67px; left:50%; transform:translateX(-50%); display:none; font-size:12.5px; background:var(--panel); border:1px solid var(--bd); border-radius:8px; padding:3px 11px; backdrop-filter:blur(8px); pointer-events:none; }
+  #modeTag{ position:absolute; right:14px; bottom:16px; display:none; font-size:12px; background:var(--panel); border:1px solid var(--bd); border-radius:8px; padding:6px 12px; backdrop-filter:blur(8px); pointer-events:auto; cursor:pointer; }
+  #modeTag b{ color:var(--acc); }
+  #crosshair{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:18px; height:18px; display:none; pointer-events:none; }
+  #crosshair:before,#crosshair:after{ content:''; position:absolute; background:rgba(255,255,255,.8); box-shadow:0 0 3px #000; }
+  #crosshair:before{ left:8px; top:0; width:2px; height:18px; } #crosshair:after{ top:8px; left:0; height:2px; width:18px; }
+  .slot.lock{ opacity:.4; } .slot .slk{ position:absolute; bottom:0; right:2px; font-size:10px; }
+  #wheel{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:280px; height:280px; display:none; z-index:18; pointer-events:auto; }
+  #wheel .wb{ position:absolute; width:80px; height:80px; margin:-40px; border-radius:50%; background:var(--panel); border:1px solid var(--bd); backdrop-filter:blur(10px); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; font-size:11.5px; cursor:pointer; text-align:center; }
+  #wheel .wb:hover{ background:rgba(95,208,255,.22); border-color:var(--acc); }
+  #wheel .wb .wi{ font-size:22px; }
+  #map{ position:absolute; inset:0; z-index:19; display:none; align-items:center; justify-content:center; background:rgba(6,9,14,.82); pointer-events:auto; }
+  #map canvas{ border-radius:14px; border:1px solid var(--bd); background:rgba(15,22,30,.6); cursor:crosshair; }
+  #mapClose{ position:absolute; top:18px; right:24px; font-size:22px; cursor:pointer; color:#fff; opacity:.7; } #mapClose:hover{ opacity:1; }
+  #mapHint{ position:absolute; top:20px; left:50%; transform:translateX(-50%); font-size:14px; color:#cfe8ff; }
+</style>
+</head>
+<body>
+  <div id="ui">
+    <div id="live" class="panel">
+      <h3><span id="liveDot" class="dot"></span> 现实世界数据</h3>
+      <div class="row"><span class="k">📍 城市</span><span class="v" id="vCity">定位中…</span></div>
+      <div class="row"><span class="k">👥 真实人口</span><span class="v" id="vRealPop">—</span></div>
+      <div class="row"><span class="k">🕐 现实时间</span><span class="v" id="vTime">--:--:--</span></div>
+      <div class="row"><span class="k">🌤 天气</span><span class="v" id="vWeather">—</span></div>
+      <div class="row"><span class="k">🌡 气温</span><span class="v" id="vTemp">—</span></div>
+      <div class="row"><span class="k">💨 空气 AQI</span><span class="v" id="vAqi">—</span></div>
+      <div class="row"><span class="k">💱 美元/人民币</span><span class="v" id="vFx">—</span></div>
+      <div class="row"><span class="k">₿ 比特币</span><span class="v" id="vBtc">—</span></div>
+      <div class="row"><span class="k">🌍 最近地震</span><span class="v" id="vQuake">—</span></div>
+      <div id="cityInput"><input id="cityName" placeholder="输入城市名切换…" /><button id="cityGo">定位</button></div>
+    </div>
+
+    <div id="stats" class="panel">
+      <div id="year">城市纪年</div>
+      <div id="yearBig">公元 ----</div>
+      <div><span id="era">当代</span></div>
+      <div class="row" style="border:0;padding:0 0 3px"><span class="k">👥 人口</span><span class="v" id="vPop">—</span></div>
+      <div class="row" style="border:0;padding:0 0 6px"><span class="k">💰 市库</span><span class="v" id="vTreasury">—</span></div>
+      <div class="stat"><div class="lab"><span>📈 经济指数</span><b id="vEco">100</b></div><div class="bar"><i id="bEco" style="width:50%;background:var(--good)"></i></div></div>
+      <div class="stat"><div class="lab"><span>🔬 科技</span><b id="vTech">0%</b></div><div class="bar"><i id="bTech" style="width:0%;background:#9a7bff"></i></div></div>
+      <div class="stat"><div class="lab"><span>🏭 污染</span><b id="vPol">—</b></div><div class="bar"><i id="bPol" style="width:30%;background:var(--warn)"></i></div></div>
+      <div class="stat"><div class="lab"><span>😊 幸福度</span><b id="vHap">—</b></div><div class="bar"><i id="bHap" style="width:70%;background:var(--acc)"></i></div></div>
+      <div class="stat"><div class="lab"><span>⚡ 清洁能源</span><b id="vGreen">—</b></div><div class="bar"><i id="bGreen" style="width:20%;background:#5fe0b0"></i></div></div>
+      <div class="svc">
+        <div class="sv">⚡<b id="svPower">—</b><span class="nm">电力</span></div>
+        <div class="sv">💼<b id="svJob">—</b><span class="nm">就业</span></div>
+        <div class="sv">🏥<b id="svHealth">—</b><span class="nm">医疗</span></div>
+        <div class="sv">🎓<b id="svEdu">—</b><span class="nm">教育</span></div>
+        <div class="sv">🚦<b id="svTraffic">—</b><span class="nm">交通</span></div>
+      </div>
+    </div>
+
+    <div id="console" class="panel">
+      <div class="btn" id="cPlay"><span class="ic" id="playIc">⏸</span>暂停</div>
+      <div class="btn" id="cSpeed"><span class="ic" id="speed">1×</span>速度</div>
+      <div class="btn" id="cGoals"><span class="ic">🎯</span>目标</div>
+      <div class="btn" id="cGround"><span class="ic">👣</span>进入地面</div>
+      <div class="btn" id="cMap"><span class="ic">🗺️</span>数据图</div>
+      <div class="btn" id="cAI"><span class="ic">🤖</span>AI对话</div>
+      <div class="btn" id="cSound"><span class="ic">🔊</span>声音</div>
+      <div class="btn" id="cSave"><span class="ic">💾</span>保存</div>
+      <div class="btn" id="cLoad"><span class="ic">📂</span>读取</div>
+      <div class="btn" id="cShot"><span class="ic">📷</span>快照</div>
+      <div class="btn" id="cQual"><span class="ic">⚙️</span>画质高</div>
+      <div class="sep"></div>
+      <div class="btn build" data-build="hospital"><span class="ic">🏥</span>+医院</div>
+      <div class="btn build" data-build="school"><span class="ic">🎓</span>+学校</div>
+      <div class="btn build" data-build="factory"><span class="ic">🏭</span>+工厂</div>
+      <div class="btn build" data-build="power"><span class="ic">⚡</span>+电厂</div>
+      <div class="btn build" data-build="wind"><span class="ic">🍃</span>+风电</div>
+      <div class="btn build" data-build="park"><span class="ic">🌳</span>+公园</div>
+      <div class="sep"></div>
+      <div class="btn" data-act="green"><span class="ic">🌱</span>环保</div>
+      <div class="btn" data-act="eco"><span class="ic">💰</span>经济</div>
+      <div class="btn" data-act="tech"><span class="ic">🔬</span>科技</div>
+      <div class="btn" data-act="shield"><span class="ic">🛡</span>防灾</div>
+      <div class="sep"></div>
+      <div class="btn" id="cQuake"><span class="ic">⚠️</span>模拟灾害</div>
+    </div>
+
+    <div id="log"></div>
+    <div id="toast"></div>
+    <div id="ghint">WASD 移动 · Shift 奔跑 · 拖动鼠标转视角 · 点击任意市民可选择与干预 · 走到门口按 E 进出建筑</div>
+    <div id="eprompt"></div>
+    <div id="goalTracker"></div>
+    <div id="goals" class="panel"><h3>🎯 选择一个目标</h3><div id="goalList"></div></div>
+    <div id="radarWrap"><canvas id="radar" width="120" height="120"></canvas></div>
+    <div id="vitals">
+      <div class="vit"><i style="color:#ff6a6a">❤</i><div class="vbar"><span id="vHp" style="width:70%;background:#ff6a6a"></span></div></div>
+      <div class="vit"><i style="color:#7ee07e">⚡</i><div class="vbar"><span id="vSta" style="width:80%;background:#7ee07e"></span></div></div>
+      <div class="vit"><i style="color:#ffcf6b">🍖</i><div class="vbar"><span id="vHun" style="width:60%;background:#ffcf6b"></span></div></div>
+      <div id="vMoney">$0</div>
+    </div>
+    <div id="toolName">公园</div>
+    <div id="hotbar"></div>
+    <div id="modeTag">模式 <b>创造</b></div>
+    <div id="crosshair"></div>
+    <div id="wheel"></div>
+    <div id="map"><div id="mapHint">点击地图设置路点 · 按 M 关闭</div><span id="mapClose">✕</span><canvas id="mapCanvas" width="520" height="520"></canvas></div>
+    <div id="cit" class="panel">
+      <div class="cit-h"><span id="citName">—</span><span id="citClose">✕</span></div>
+      <div class="cit-j" id="citJobV">—</div>
+      <div class="cit-s" id="citState">—</div>
+      <div class="cit-n" id="citNeeds"></div>
+      <div id="citSend" class="cit-send"><button data-go="home">回家</button><button data-go="work">上班</button><button data-go="food">餐厅</button><button data-go="leisure">公园</button></div>
+      <div class="cit-act"><button id="citPossess">🎮 附身操控</button><button id="citTalk">💬 交谈</button><button id="citMoney">💵 给钱</button><button id="citJob">💼 换工作</button><button id="citMood">😊 鼓励</button></div>
+    </div>
+  </div>
+
+  <div id="overlay">
+    <div class="card">
+      <h1>数据城市 · 未来演化</h1>
+      <p>用<b>你所在城市的真实天气、空气、地震与经济数据</b>为起点，建起一座拥有完整基建的城市，<br/>看它自动演化向未来——你可以随时干预，亲手建设。</p>
+      <div class="feat">🏙 商务/住宅/工业分区　🏥 医院 🎓 学校 🏟 体育场 ⚡ 电厂 📡 地标<br/>🌉 河流桥梁　🛣 高架环路　🚄 铁路列车　✈️ 机场　🍃 风电光伏　💡 路灯<br/>📊 电力·就业·医疗·教育·交通 五大系统接入模拟</div>
+      <div class="start" id="startBtn">▶ 建立城市</div>
+      <div id="loadnote"></div>
+      <div class="tip">需要联网加载 3D 引擎与实时数据。定位被拒绝时使用默认城市，可在左下角切换。若黑屏请用本地服务器打开（见 README）。</div>
+    </div>
+  </div>
+
+  <div id="err"><div class="box panel">
+    <h2 style="margin-bottom:12px">😕 引擎加载失败</h2>
+    <p>无法从网络加载 3D 引擎。请检查网络，或在该文件夹启动本地服务器：</p>
+    <p style="margin-top:12px"><code>python3 -m http.server 8000</code> → 打开 <code>http://localhost:8000/city.html</code></p>
+  </div></div>
+
+  <script>
+    window.__booted=false;
+    setTimeout(function(){ if(!window.__booted){var e=document.getElementById('err'); if(e)e.style.display='flex';} },14000);
+    window.addEventListener('error',function(ev){ if(!window.__booted&&(''+ev.message).match(/import|module|three|fetch/i)){var e=document.getElementById('err'); if(e)e.style.display='flex';} });
+  </script>
+
+  <script type="importmap">
+  { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
+  </script>
+
+  <script type="module">
+  import * as THREE from 'three';
+  import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+  import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+  import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+  import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+  import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+  import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+  import { SSAOPass } from 'three/addons/postprocessing/SSAOPass.js';
+  import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+
+  /* ============ 数据城市 v2 · 现实驱动 · 完整基建 · 未来演化 ============ */
+  const N = 24, CELL = 5, HALF = (N - 1) / 2, SPAN = N * CELL;
+  const ERAS = ['当代', '近未来', '未来都市', '超未来'];
+  const $ = id => document.getElementById(id);
+  const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
+  const lerp = (a,b,t)=>a+(b-a)*t;
+  const rand = (a,b)=>a+Math.random()*(b-a);
+  const pick = arr => arr[Math.floor(Math.random()*arr.length)];
+  const fmt = n => n>=1e8?(n/1e8).toFixed(2)+'亿':n>=1e4?(n/1e4).toFixed(1)+'万':Math.round(n).toLocaleString();
+  const smat = (color,o={}) => new THREE.MeshStandardMaterial(Object.assign({color,roughness:0.82},o));
+
+  const data = {
+    lat:39.9042, lon:116.4074, city:'北京', population:0,
+    weather:null, aqi:null, fx:null, crypto:null, quakes:[], seenQuakes:new Set(),
+    on:{ geo:false, weather:false, aqi:false, fx:false, crypto:false, quake:false }
+  };
+  const startYear = new Date().getFullYear();
+  const sim = {
+    running:true, speed:1, started:false, yearF:0,
+    population:120000, economy:100, tech:0, era:0, treasury:8000,
+    pollution:35, happiness:70, green:0.18, resilience:0.25,
+    econPolicy:0, techBoost:0, quakeShake:0,
+    powerRatio:1, employment:0.8, health:0.7, education:0.6, traffic:0.3, popScale:1
+  };
+  const infra = { com:0, res:0, ind:0, hospital:0, school:0, stadium:0, power:0, wind:0, solar:0, tower:0, park:0, highway:false, rail:false, airport:false };
+
+  let scene, camera, renderer, controls, composer, bloomPass;
+  let sunLight, hemiLight, ambient, skyMat, sunMesh, sunSprite, moonMesh, stars, starMat;
+  let cityGroup, activeGroup, plots=[], buildings=[], cars=[], parks=[];
+  let realMode=false, realGroup=null;
+  let smokeEmitters=[], smoke, smokeData=[];
+  let turbines=[], trains=[], planes=[], hwCars=[], blinkers=[];
+  let streetBulbMat, towerLightMat;
+  let rain, snow, clouds=[];
+  let windowTex;
+  let skyTime;
+
+  function init(){
+    scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0xbcd6ef, 0.0042);
+    camera = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 0.5, 2500);
+    camera.position.set(95, 78, 95);
+    renderer = new THREE.WebGLRenderer({ antialias:true, powerPreference:'high-performance', preserveDrawingBuffer:true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
+    document.body.appendChild(renderer.domElement);
+    const pmrem = new THREE.PMREMGenerator(renderer); scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+
+    controls = new OrbitControls(camera, renderer.domElement);
+    controls.target.set(0,6,0); controls.enableDamping=true; controls.dampingFactor=0.08;
+    controls.maxPolarAngle = Math.PI*0.495; controls.minDistance=28; controls.maxDistance=320;
+    controls.autoRotate=true; controls.autoRotateSpeed=0.32;
+
+    composer=new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene,camera));
+    const ssao=new SSAOPass(scene,camera,innerWidth,innerHeight); ssao.kernelRadius=16; ssao.minDistance=0.004; ssao.maxDistance=0.12; composer.addPass(ssao);
+    bloomPass=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight), 0.75, 0.5, 0.78);
+    composer.addPass(bloomPass);
+    composer.addPass(new OutputPass());
+
+    buildLights(); buildSky(); makeWindowTex();
+    cityGroup = new THREE.Group(); scene.add(cityGroup); activeGroup = cityGroup;
+    buildGroundAndRoads(); buildRiver(); zoneAndBuild();
+    buildCivicLandmarks(); buildHighwayRing(); buildRailway(); buildAirport();
+    buildGreenEnergy(); buildStreetLights(); buildSmoke(); buildWeatherFX();
+    recountInfra();
+
+    skyTime = new Date();
+    addEventListener('resize', onResize);
+    setupUI();
+    initCitizens(); initInteract(); buildGrid(); renderHotbar();
+    window.__booted = true;
+
+    updateSky(0); updateStats();
+    requestAnimationFrame(loop);
+  }
+
+  function buildLights(){
+    sunLight = new THREE.DirectionalLight(0xffffff, 2.3);
+    sunLight.castShadow=true; sunLight.shadow.mapSize.set(4096,4096);
+    const s=sunLight.shadow.camera; s.near=1; s.far=480; s.left=-95; s.right=95; s.top=95; s.bottom=-95;
+    sunLight.shadow.bias=-0.0004; sunLight.shadow.normalBias=0.05;
+    scene.add(sunLight); scene.add(sunLight.target);
+    hemiLight = new THREE.HemisphereLight(0xbcd6ef, 0x46505a, 0.85); scene.add(hemiLight);
+    ambient = new THREE.AmbientLight(0xffffff, 0.28); scene.add(ambient);
+  }
+  function glowTex(hex){ const c=document.createElement('canvas'); c.width=c.height=128; const x=c.getContext('2d');
+    const g=x.createRadialGradient(64,64,0,64,64,64); g.addColorStop(0,hex); g.addColorStop(0.3,hex); g.addColorStop(0.55,'rgba(255,255,255,.25)'); g.addColorStop(1,'rgba(255,255,255,0)');
+    x.fillStyle=g; x.fillRect(0,0,128,128); return new THREE.CanvasTexture(c); }
+  function buildSky(){
+    skyMat = new THREE.ShaderMaterial({ side:THREE.BackSide, depthWrite:false, fog:false,
+      uniforms:{ top:{value:new THREE.Color(0x2e6fc9)}, bottom:{value:new THREE.Color(0xbcd6ef)}, offset:{value:30}, exponent:{value:0.6} },
+      vertexShader:'varying vec3 vP;void main(){vP=(modelMatrix*vec4(position,1.0)).xyz;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
+      fragmentShader:'uniform vec3 top;uniform vec3 bottom;uniform float offset;uniform float exponent;varying vec3 vP;void main(){float h=normalize(vP+vec3(0.0,offset,0.0)).y;gl_FragColor=vec4(mix(bottom,top,pow(max(h,0.0),exponent)),1.0);}' });
+    scene.add(new THREE.Mesh(new THREE.SphereGeometry(900,32,16), skyMat));
+    sunMesh = new THREE.Mesh(new THREE.SphereGeometry(15,20,20), new THREE.MeshBasicMaterial({color:0xfff4cc,fog:false})); scene.add(sunMesh);
+    sunSprite = new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex('#fff2c8'),blending:THREE.AdditiveBlending,transparent:true,depthWrite:false,fog:false})); sunSprite.scale.set(150,150,1); scene.add(sunSprite);
+    moonMesh = new THREE.Mesh(new THREE.SphereGeometry(9,18,18), new THREE.MeshBasicMaterial({color:0xdfe6ff,fog:false})); scene.add(moonMesh);
+    const M=900,p=new Float32Array(M*3);
+    for(let i=0;i<M;i++){ const u=Math.random()*6.28,v=Math.random()*0.85+0.03,r=850; p[i*3]=Math.cos(u)*Math.sin(v*Math.PI)*r; p[i*3+1]=Math.abs(Math.cos(v*Math.PI))*r; p[i*3+2]=Math.sin(u)*Math.sin(v*Math.PI)*r; }
+    const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(p,3));
+    starMat=new THREE.PointsMaterial({color:0xffffff,size:2.4,sizeAttenuation:true,transparent:true,opacity:0,depthWrite:false,fog:false});
+    stars=new THREE.Points(g,starMat); scene.add(stars);
+  }
+  function makeWindowTex(){
+    const c=document.createElement('canvas'); c.width=64; c.height=128; const x=c.getContext('2d');
+    x.fillStyle='#000'; x.fillRect(0,0,64,128);
+    for(let r=0;r<16;r++) for(let col=0;col<8;col++){ const lit=Math.random()<0.5; x.fillStyle=lit?(Math.random()<0.3?'#ffd98a':'#bfe6ff'):'#0a0e16'; x.fillRect(col*8+1.5,r*8+2,5,5); }
+    windowTex=new THREE.CanvasTexture(c); windowTex.wrapS=windowTex.wrapT=THREE.RepeatWrapping;
+  }
+
+  const wpos = i => (i-HALF)*CELL;
+  const ROAD = i => i%4===0;
+  const RIVER_COLS = [11,12];                       // 河流所占的地块列
+  const isRiver = i => RIVER_COLS.includes(i);
+
+  function buildGroundAndRoads(){
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(SPAN+120, SPAN+120), smat(0x3f5a3a,{roughness:1}));
+    ground.rotation.x=-Math.PI/2; ground.position.y=-0.06; ground.receiveShadow=true; activeGroup.add(ground);
+    const roadMat = smat(0x2a2e36,{roughness:0.95});
+    const lineMat = smat(0xb8b840,{roughness:0.9,emissive:0x222200});
+    for(let i=0;i<N;i++){ if(!ROAD(i)) continue;
+      const h=new THREE.Mesh(new THREE.BoxGeometry(SPAN,0.08,CELL*0.6),roadMat); h.position.set(0,0.02,wpos(i)); h.receiveShadow=true; activeGroup.add(h);
+      const v=new THREE.Mesh(new THREE.BoxGeometry(CELL*0.6,0.08,SPAN),roadMat); v.position.set(wpos(i),0.02,0); v.receiveShadow=true; activeGroup.add(v);
+      const hl=new THREE.Mesh(new THREE.BoxGeometry(SPAN,0.02,0.12),lineMat); hl.position.set(0,0.07,wpos(i)); activeGroup.add(hl);
+    }
+  }
+
+  function buildRiver(){
+    const cx=(wpos(RIVER_COLS[0])+wpos(RIVER_COLS[1]))/2, w=CELL*2.2;
+    const bed=new THREE.Mesh(new THREE.BoxGeometry(w+2,0.4,SPAN+120), smat(0x223047,{roughness:1})); bed.position.set(cx,-0.25,0); bed.receiveShadow=true; activeGroup.add(bed);
+    const water=new THREE.Mesh(new THREE.PlaneGeometry(w,SPAN+120,1,40), new THREE.MeshStandardMaterial({color:0x2f7fae,transparent:true,opacity:0.82,roughness:0.1,metalness:0.5}));
+    water.rotation.x=-Math.PI/2; water.position.set(cx,0.08,0); activeGroup.add(water); riverWater=water; riverBase=water.geometry.attributes.position.array.slice();
+    // 桥栏（道路跨河处）
+    for(let j=0;j<N;j++){ if(!ROAD(j)) continue;
+      for(const s of [-1,1]){ const rail=new THREE.Mesh(new THREE.BoxGeometry(w+2,0.5,0.18), smat(0x9aa3ad)); rail.position.set(cx,0.45,wpos(j)+s*CELL*0.32); activeGroup.add(rail); } }
+  }
+  let riverWater, riverBase;
+
+  // ---------- 分区与建筑 ----------
+  function zoneFor(i,j){
+    const x=wpos(i),z=wpos(j), r=Math.hypot(x,z)/(HALF*CELL);
+    if(r>0.5 && x>8 && z<-8) return 'ind';        // 工业集中在一角
+    if(r<0.3) return 'com';
+    if(r<0.55) return Math.random()<0.55?'com':'res';
+    return 'res';
+  }
+  function winMat(w,h,baseCol,emCol,metal){
+    const tex=windowTex.clone(); tex.needsUpdate=true; tex.repeat.set(Math.max(1,Math.round(w/2)),Math.max(2,Math.round(h/3)));
+    return new THREE.MeshStandardMaterial({ color:baseCol, roughness:metal>0.3?0.4:0.75, metalness:metal, emissive:emCol, emissiveMap:tex, emissiveIntensity:0 });
+  }
+  const PAL = [
+    { com:[0x6f86a8,0xaecde8], res:[0xb8a48a,0xd8c4a4], ind:[0x8a8580,0xa8a39a], em:0xffd28a },
+    { com:[0x4f7fb8,0x9fcdf0], res:[0x9fb0b8,0xcfe0e6], ind:[0x7f8a90,0xaab2b8], em:0xbfe6ff },
+    { com:[0x4fae9a,0xc7f0e0], res:[0x88c0a8,0xd7f0e0], ind:[0x6f9a8a,0xa8d0c0], em:0x8affe0 },
+    { com:[0x7a5cff,0xff7be0], res:[0x6f7cff,0xc77bff], ind:[0x9a6aff,0xd07bff], em:0x7bffea }
+  ];
+  function makeBuilding(plot){
+    const pal=PAL[sim.era], z=plot.zone;
+    const dist=Math.hypot(plot.x,plot.z)/(HALF*CELL), dt=1-clamp(dist,0,1);
+    let h,w, base,em,metal,type=z;
+    if(z==='com'){ h=rand(6,11)+dt*dt*rand(14,40)+sim.era*3; w=CELL*rand(0.6,0.8); base=new THREE.Color(pal.com[0]).lerp(new THREE.Color(pal.com[1]),Math.random()); em=pal.em; metal=sim.era>=1?0.55:0.25; }
+    else if(z==='ind'){ h=rand(3,5.5); w=CELL*rand(0.78,0.9); base=new THREE.Color(pal.ind[0]).lerp(new THREE.Color(pal.ind[1]),Math.random()); em=0xffaa55; metal=0.1; }
+    else { h=rand(4,9)+dt*rand(2,8)+sim.era*1.5; w=CELL*rand(0.66,0.82); base=new THREE.Color(pal.res[0]).lerp(new THREE.Color(pal.res[1]),Math.random()); em=pal.em; metal=sim.era>=2?0.3:0.08; }
+    const mat=winMat(w,h,base,new THREE.Color(em),metal);
+    const m=new THREE.Mesh(new THREE.BoxGeometry(1,1,1),mat); m.castShadow=true; m.receiveShadow=true;
+    m.position.set(plot.x,0,plot.z); m.scale.set(w,0.4,w); activeGroup.add(m);
+    const b={ mesh:m, mat, plot, w, curH:0.4, targetH:h, era:sim.era, type, damaged:0 };
+    plot.b=b; buildings.push(b);
+    if(z==='ind'){ const ch=new THREE.Mesh(new THREE.CylinderGeometry(0.32,0.4,h*0.9,8), smat(0x70665e)); ch.position.set(plot.x+w*0.3,0,plot.z+w*0.3); ch.scale.y=0.01; m.userData.chim=ch; activeGroup.add(ch); b.chim=ch; smokeEmitters.push({mesh:ch, b, top:0}); }
+    return b;
+  }
+  function zoneAndBuild(){
+    for(let i=0;i<N;i++) for(let j=0;j<N;j++){
+      if(ROAD(i)||ROAD(j)||isRiver(i)) continue;
+      plots.push({ i,j, x:wpos(i), z:wpos(j), b:null, zone:zoneFor(i,j), occupied:false });
+    }
+    plots.sort((a,b)=>Math.hypot(a.x,a.z)-Math.hypot(b.x,b.z));
+    for(let k=0;k<7;k++){ const p=plots[Math.floor(rand(plots.length*0.4,plots.length))]; if(p&&!p.occupied){ makePark(p); } }
+    const target=Math.round(plots.length*0.66);
+    let c=0; for(const p of plots){ if(c>=target) break; if(p.occupied) continue; makeBuilding(p); p.occupied=true; c++; }
+  }
+  function makePark(p){
+    p.occupied=true; p.zone='park'; parks.push(p);
+    const grass=new THREE.Mesh(new THREE.BoxGeometry(CELL*0.82,0.14,CELL*0.82), smat(0x4e8c45,{roughness:1})); grass.position.set(p.x,0.07,p.z); grass.receiveShadow=true; activeGroup.add(grass);
+    for(let t=0;t<3;t++){ const tr=new THREE.Group();
+      const tk=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.16,0.6,6),smat(0x6b4a2e)); tk.position.y=0.3;
+      const tp=new THREE.Mesh(new THREE.IcosahedronGeometry(rand(0.5,0.85),0),smat(0x3f8f3a,{flatShading:true})); tp.position.y=0.95; tp.castShadow=true;
+      tr.add(tk,tp); tr.position.set(p.x+rand(-1.4,1.4),0.14,p.z+rand(-1.4,1.4)); activeGroup.add(tr); }
+  }
+  function freePlot(filter){ if(realMode) return {x:rand(-95,95),z:rand(-95,95)}; for(const p of plots){ if(p.occupied) continue; if(!filter||filter(p)) return p; } return plots.find(p=>!p.occupied)||null; }
+
+  // ---------- 市政地标 ----------
+  function tagCivic(plot, mesh, type, h){
+    const b={ mesh, mat:mesh.material, plot, w:CELL*0.8, curH:h, targetH:h, era:sim.era, type, damaged:0, fixed:true };
+    plot.b=b; plot.occupied=true; buildings.push(b); return b;
+  }
+  function makeHospital(plot){
+    const g=new THREE.Group(); g.position.set(plot.x,0,plot.z);
+    const body=new THREE.Mesh(new THREE.BoxGeometry(CELL*0.8,7,CELL*0.8), smat(0xf2f5f8,{roughness:0.6})); body.position.y=3.5; body.castShadow=body.receiveShadow=true; g.add(body);
+    for(const f of [1,-1]){ const v=new THREE.Mesh(new THREE.BoxGeometry(1.6,0.5,0.16), smat(0xff3b3b,{emissive:0xaa0000,emissiveIntensity:0.4})); v.position.set(0,5,f*CELL*0.401); g.add(v);
+      const hh=new THREE.Mesh(new THREE.BoxGeometry(0.5,1.6,0.16), smat(0xff3b3b,{emissive:0xaa0000,emissiveIntensity:0.4})); hh.position.set(0,5,f*CELL*0.401); g.add(hh); }
+    activeGroup.add(g); tagCivic(plot,body,'hospital',7); body.userData.grp=g;
+  }
+  function makeSchool(plot){
+    const g=new THREE.Group(); g.position.set(plot.x,0,plot.z);
+    const body=new THREE.Mesh(new THREE.BoxGeometry(CELL*0.82,4.5,CELL*0.55), smat(0xd8a86a)); body.position.set(0,2.25,-CELL*0.12); body.castShadow=body.receiveShadow=true; g.add(body);
+    const roof=new THREE.Mesh(new THREE.BoxGeometry(CELL*0.86,0.4,CELL*0.6), smat(0x9c4a3a)); roof.position.set(0,4.6,-CELL*0.12); g.add(roof);
+    const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,4,6), smat(0xcccccc)); pole.position.set(CELL*0.3,2,CELL*0.25); g.add(pole);
+    const flag=new THREE.Mesh(new THREE.BoxGeometry(0.9,0.5,0.05), smat(0xff4d4d)); flag.position.set(CELL*0.3+0.45,3.7,CELL*0.25); g.add(flag);
+    activeGroup.add(g); tagCivic(plot,body,'school',4.5);
+  }
+  function makeStadium(plot){
+    const g=new THREE.Group(); g.position.set(plot.x,0,plot.z);
+    const ring=new THREE.Mesh(new THREE.CylinderGeometry(CELL*0.55,CELL*0.62,3.2,24,1,true), smat(0xe8eef2,{side:THREE.DoubleSide,metalness:0.3,roughness:0.5})); ring.position.y=1.6; ring.castShadow=true; g.add(ring);
+    const field=new THREE.Mesh(new THREE.CircleGeometry(CELL*0.5,24), smat(0x3f9f4a)); field.rotation.x=-Math.PI/2; field.position.y=0.1; g.add(field);
+    activeGroup.add(g); tagCivic(plot,ring,'stadium',3.2);
+  }
+  function makePowerPlant(plot, green){
+    const g=new THREE.Group(); g.position.set(plot.x,0,plot.z);
+    const body=new THREE.Mesh(new THREE.BoxGeometry(CELL*0.86,4,CELL*0.86), smat(green?0x5fae8a:0x8a8074)); body.position.y=2; body.castShadow=body.receiveShadow=true; g.add(body);
+    if(green){ for(let s=0;s<6;s++){ const pan=new THREE.Mesh(new THREE.BoxGeometry(1.4,0.1,1.0), smat(0x1b3a6b,{metalness:0.6,roughness:0.3,emissive:0x0a1830})); pan.position.set(rand(-1.6,1.6),4.1,rand(-1.6,1.6)); pan.rotation.x=-0.5; g.add(pan); } }
+    else { for(const dx of [-1,1]){ const tw=new THREE.Mesh(new THREE.CylinderGeometry(1.0,1.4,5,16), smat(0xb8b0a4)); tw.position.set(dx*1.3,4.5,0); tw.castShadow=true; g.add(tw); smokeEmitters.push({mesh:tw, b:null, top:7, big:true}); } }
+    activeGroup.add(g); const b=tagCivic(plot,body,'power',4); b.green=green;
+  }
+  function makeTower(){
+    const p=plots[0]; if(!p) return; p.occupied=true;
+    const g=new THREE.Group(); g.position.set(p.x,0,p.z);
+    const shaft=new THREE.Mesh(new THREE.CylinderGeometry(0.7,1.6,46,12), smat(0xcdd6df,{metalness:0.4,roughness:0.4})); shaft.position.y=23; shaft.castShadow=true; g.add(shaft);
+    const pod=new THREE.Mesh(new THREE.SphereGeometry(2.6,16,12), smat(0x9fb6c8,{metalness:0.5,roughness:0.3,emissive:0x223,emissiveIntensity:0.2})); pod.position.y=34; g.add(pod);
+    const lightMat=new THREE.MeshStandardMaterial({color:0xff4444,emissive:0xff2222,emissiveIntensity:1.5}); const tip=new THREE.Mesh(new THREE.SphereGeometry(0.5,8,8),lightMat); tip.position.y=46.5; g.add(tip);
+    activeGroup.add(g); blinkers.push(lightMat); tagCivic(p,shaft,'tower',46);
+  }
+  function buildCivicLandmarks(){
+    makeTower();
+    makeHospital(freePlot(p=>Math.hypot(p.x,p.z)<35));
+    makeHospital(freePlot(p=>Math.hypot(p.x,p.z)>35));
+    makeSchool(freePlot(p=>Math.hypot(p.x,p.z)<40));
+    makeSchool(freePlot());
+    makeStadium(freePlot(p=>Math.hypot(p.x,p.z)>30 && Math.hypot(p.x,p.z)<55));
+    makePowerPlant(freePlot(p=>p.zone==='ind'||p.x>20), false);
+  }
+
+  // ---------- 高架环路 ----------
+  function buildHighwayRing(){
+    const R=SPAN/2+6, y=4.0, segMat=smat(0x3a3f48,{roughness:0.9}), pillarMat=smat(0x5a606a);
+    const L=R*2;
+    const make=(x,z,rot)=>{ const seg=new THREE.Mesh(new THREE.BoxGeometry(L,0.5,4),segMat); seg.position.set(x,y,z); seg.rotation.y=rot; seg.castShadow=true; activeGroup.add(seg); };
+    make(0,-R,0); make(0,R,0); make(-R,0,Math.PI/2); make(R,0,Math.PI/2);
+    for(let t=0;t<4;t++){ const a=t*Math.PI/2; const cx=Math.cos(a)*R, cz=Math.sin(a)*R; }
+    for(let i=0;i<40;i++){ const a=(i/40)*Math.PI*2; const onX=Math.abs(Math.cos(a))>Math.abs(Math.sin(a));
+      const px = onX? (Math.cos(a)>0?R:-R) : rand(-R,R); const pz = onX? rand(-R,R) : (Math.sin(a)>0?R:-R);
+      const pil=new THREE.Mesh(new THREE.BoxGeometry(0.8,y,0.8),pillarMat); pil.position.set(px,y/2,pz); activeGroup.add(pil); }
+    for(let k=0;k<14;k++){ const m=new THREE.Mesh(new THREE.BoxGeometry(1.1,0.5,2.1), smat(new THREE.Color().setHSL(Math.random(),0.5,0.55),{metalness:0.3,roughness:0.5}));
+      const head=new THREE.Mesh(new THREE.BoxGeometry(1,0.18,0.2), new THREE.MeshStandardMaterial({color:0xfff3c0,emissive:0xfff0b0,emissiveIntensity:0})); head.position.set(0,0.05,1.05); m.add(head);
+      m.castShadow=true; activeGroup.add(m); hwCars.push({mesh:m, head:head.material, t:Math.random(), spd:rand(0.02,0.05), dir:Math.random()<0.5?1:-1, R, y}); }
+    infra.highway=true;
+  }
+  function hwPos(t,R){ // 方形环路参数 t∈[0,1)
+    const s=((t%1)+1)%1*4, e=Math.floor(s), f=s-e;
+    if(e===0) return [lerp(-R,R,f), -R, Math.PI/2*0+0, 0];
+    if(e===1) return [R, lerp(-R,R,f), 0, 0];
+    if(e===2) return [lerp(R,-R,f), R, 0, 0];
+    return [-R, lerp(R,-R,f), 0, 0];
+  }
+
+  // ---------- 铁路 ----------
+  function buildRailway(){
+    const z=wpos(N-3)+2, rmat=smat(0x6b6b72,{metalness:0.4}), tieMat=smat(0x4a3a2a);
+    for(const dx of [-0.7,0.7]){ const rail=new THREE.Mesh(new THREE.BoxGeometry(SPAN+120,0.12,0.16),rmat); rail.position.set(0,0.22,z+dx); activeGroup.add(rail); }
+    const ties=new THREE.InstancedMesh(new THREE.BoxGeometry(2.2,0.12,0.4),tieMat,Math.floor((SPAN+120)/1.6)); ties.frustumCulled=false;
+    let n=0; for(let x=-(SPAN+120)/2;x<(SPAN+120)/2;x+=1.6){ const d=new THREE.Object3D(); d.position.set(x,0.16,z); d.updateMatrix(); ties.setMatrixAt(n++,d.matrix); } ties.count=n; activeGroup.add(ties);
+    // 站房
+    const st=new THREE.Mesh(new THREE.BoxGeometry(8,4,3), smat(0xc9a06a)); st.position.set(wpos(6),2,z+3.2); st.castShadow=true; activeGroup.add(st);
+    const roof=new THREE.Mesh(new THREE.BoxGeometry(9,0.4,4), smat(0x7a4a3a)); roof.position.set(wpos(6),4.2,z+3.2); activeGroup.add(roof);
+    // 列车
+    const train=new THREE.Group(); const headMat=smat(0xeef2f6,{metalness:0.5,roughness:0.3});
+    for(let c=0;c<5;c++){ const car=new THREE.Mesh(new THREE.BoxGeometry(7,2.4,2.2), c===0?smat(0x2a6fb0,{metalness:0.5,roughness:0.3}):headMat); car.position.set(c*7.6,1.6,z); car.castShadow=true; const win=new THREE.Mesh(new THREE.BoxGeometry(6.4,0.7,2.22), new THREE.MeshStandardMaterial({color:0x223,emissive:0xbfe6ff,emissiveIntensity:0})); win.position.y=0.4; car.add(win); car.userData.win=win.material; train.add(car); }
+    activeGroup.add(train); trains.push({grp:train, z, x:-(SPAN+90)/2, spd:18, wins:train.children.map(c=>c.userData.win)});
+    infra.rail=true;
+  }
+
+  // ---------- 机场 ----------
+  function buildAirport(){
+    const ax=-SPAN/2-34, az=SPAN/2+30;
+    const apron=new THREE.Mesh(new THREE.BoxGeometry(60,0.2,30), smat(0x55585f)); apron.position.set(ax,0.05,az); apron.receiveShadow=true; activeGroup.add(apron);
+    const rw=new THREE.Mesh(new THREE.BoxGeometry(54,0.22,7), smat(0x303338)); rw.position.set(ax,0.12,az); activeGroup.add(rw);
+    for(let i=-4;i<=4;i++){ const m=new THREE.Mesh(new THREE.BoxGeometry(3,0.02,0.5), smat(0xddddcc,{emissive:0x222200})); m.position.set(ax+i*5,0.24,az); activeGroup.add(m); }
+    const term=new THREE.Mesh(new THREE.BoxGeometry(20,5,8), smat(0xbfd0dc,{metalness:0.3,roughness:0.5})); term.position.set(ax,2.5,az-13); term.castShadow=true; activeGroup.add(term);
+    // 飞机（绕城飞行）
+    const plane=new THREE.Group();
+    const fus=new THREE.Mesh(new THREE.CylinderGeometry(0.7,0.7,7,10), smat(0xf0f3f6,{metalness:0.4})); fus.rotation.z=Math.PI/2; plane.add(fus);
+    const wing=new THREE.Mesh(new THREE.BoxGeometry(1.4,0.18,7), smat(0xdfe6ec)); plane.add(wing);
+    const tail=new THREE.Mesh(new THREE.BoxGeometry(1.2,1.6,0.2), smat(0xcc4444)); tail.position.set(-3.2,0.8,0); plane.add(tail);
+    plane.scale.set(1.3,1.3,1.3); activeGroup.add(plane);
+    planes.push({grp:plane, ang:0, R:SPAN/2+40, alt:34, spd:0.12});
+    infra.airport=true;
+  }
+
+  // ---------- 风电 / 光伏 ----------
+  function buildGreenEnergy(){
+    for(let k=0;k<5;k++){ const g=new THREE.Group(); const x=-SPAN/2-rand(8,26), z=-SPAN/2-rand(2,28);
+      const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.25,0.4,12,8), smat(0xeeeeee)); pole.position.y=6; pole.castShadow=true; g.add(pole);
+      const hub=new THREE.Group(); hub.position.set(0,12,0.5);
+      for(let b=0;b<3;b++){ const blade=new THREE.Mesh(new THREE.BoxGeometry(0.3,7,0.6), smat(0xf4f4f4)); blade.position.y=3.5; const arm=new THREE.Group(); arm.add(blade); arm.rotation.z=b*Math.PI*2/3; hub.add(arm); }
+      g.add(hub); g.position.set(x,0,z); activeGroup.add(g); turbines.push(hub); infra.wind++; }
+    // 光伏阵列
+    const farm=new THREE.Group(); const fx=-SPAN/2-18, fz=SPAN/2+8;
+    for(let a=0;a<5;a++) for(let b=0;b<4;b++){ const pan=new THREE.Mesh(new THREE.BoxGeometry(3,0.12,1.8), smat(0x16345f,{metalness:0.6,roughness:0.25,emissive:0x081428})); pan.position.set(a*3.6, 0.8, b*2.4); pan.rotation.x=-0.5; pan.castShadow=true; farm.add(pan); }
+    farm.position.set(fx,0,fz); activeGroup.add(farm); infra.solar=20;
+  }
+
+  // ---------- 路灯（实例化） ----------
+  function buildStreetLights(){
+    const pts=[]; for(let i=0;i<N;i++){ if(!ROAD(i)) continue; for(let t=-HALF;t<=HALF;t+=2){ pts.push([wpos(i),wpos(Math.round(t+HALF))]); } }
+    const poleMat=smat(0x44484f); const pole=new THREE.InstancedMesh(new THREE.CylinderGeometry(0.08,0.1,3,5),poleMat,pts.length); pole.frustumCulled=false;
+    streetBulbMat=new THREE.MeshStandardMaterial({color:0xfff0c0,emissive:0xffe79a,emissiveIntensity:0});
+    const bulb=new THREE.InstancedMesh(new THREE.SphereGeometry(0.16,6,6),streetBulbMat,pts.length); bulb.frustumCulled=false;
+    const d=new THREE.Object3D(); let n=0;
+    for(const [x,z] of pts){ d.position.set(x+CELL*0.34,1.5,z); d.updateMatrix(); pole.setMatrixAt(n,d.matrix); d.position.y=3.0; d.updateMatrix(); bulb.setMatrixAt(n,d.matrix); n++; }
+    pole.count=bulb.count=n; pole.instanceMatrix.needsUpdate=true; bulb.instanceMatrix.needsUpdate=true; activeGroup.add(pole); activeGroup.add(bulb);
+  }
+
+  // ---------- 烟雾 ----------
+  function buildSmoke(){
+    const MAX=260; const pos=new Float32Array(MAX*3);
+    for(let i=0;i<MAX;i++){ const e=smokeEmitters.length?pick(smokeEmitters):null; const px=e?e.mesh.position.x:0, pz=e?e.mesh.position.z:0;
+      pos[i*3]=px; pos[i*3+1]=rand(2,14); pos[i*3+2]=pz; smokeData.push({e, life:rand(0,3), sp:rand(1.2,2.6), drift:rand(-0.4,0.4)}); }
+    const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(pos,3));
+    smoke=new THREE.Points(g, new THREE.PointsMaterial({color:0x8a8d92,size:2.4,transparent:true,opacity:0.35,depthWrite:false,sizeAttenuation:true})); smoke.frustumCulled=false; scene.add(smoke);
+  }
+  function updateSmoke(dt){
+    if(!smoke||!smokeEmitters.length) return;
+    const arr=smoke.geometry.attributes.position.array; const pol=clamp(sim.pollution/100,0.05,1);
+    smoke.material.opacity=0.12+pol*0.4;
+    for(let i=0;i<smokeData.length;i++){ const s=smokeData[i]; if(!s.e) continue; s.life-=dt;
+      arr[i*3+1]+=s.sp*dt; arr[i*3]+=s.drift*dt;
+      if(s.life<=0 || arr[i*3+1]>22){ s.e=pick(smokeEmitters); s.life=rand(2,4)*(1.4-pol); const top=s.e.top||(s.e.b?s.e.b.curH*0.9:6); arr[i*3]=s.e.mesh.position.x; arr[i*3+1]=top; arr[i*3+2]=s.e.mesh.position.z; }
+    }
+    smoke.geometry.attributes.position.needsUpdate=true;
+  }
+
+  // ---------- 天气特效 ----------
+  function buildWeatherFX(){
+    const mk=(count,color,size)=>{ const p=new Float32Array(count*3); for(let i=0;i<count;i++){ p[i*3]=rand(-70,70); p[i*3+1]=rand(0,80); p[i*3+2]=rand(-70,70); }
+      const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(p,3)); const m=new THREE.PointsMaterial({color,size,transparent:true,opacity:0.7,depthWrite:false,fog:false}); const pts=new THREE.Points(g,m); pts.visible=false; scene.add(pts); return pts; };
+    rain=mk(2000,0x9fc8ff,0.35); snow=mk(1200,0xffffff,0.6);
+    for(let i=0;i<11;i++){ const g=new THREE.Group(); const m=new THREE.MeshStandardMaterial({color:0xffffff,transparent:true,opacity:0.9,roughness:1,emissive:0x445,emissiveIntensity:0.1});
+      for(let k=0;k<5;k++){ const s=rand(5,9); const pf=new THREE.Mesh(new THREE.SphereGeometry(s,8,6),m); pf.position.set(rand(-10,10),rand(-1,1),rand(-8,8)); pf.scale.y=0.5; g.add(pf); }
+      g.position.set(rand(-150,150),rand(60,95),rand(-150,150)); g.userData.spd=rand(1,3); scene.add(g); clouds.push(g); }
+  }
+
+  // ============ 太阳位置 ============
+  function solar(date,lat,lon){
+    const rad=Math.PI/180, jd=date.getTime()/86400000+2440587.5, n=jd-2451545.0;
+    let L=(280.460+0.9856474*n)%360; if(L<0)L+=360; const g=((357.528+0.9856003*n)%360)*rad;
+    const lam=(L+1.915*Math.sin(g)+0.020*Math.sin(2*g))*rad, eps=23.439*rad;
+    const dec=Math.asin(Math.sin(eps)*Math.sin(lam)), ra=Math.atan2(Math.cos(eps)*Math.sin(lam),Math.cos(lam));
+    let gmst=(280.46061837+360.98564736629*n)%360; if(gmst<0)gmst+=360;
+    const lst=(gmst+lon)*rad, ha=lst-ra, la=lat*rad;
+    const el=Math.asin(Math.sin(la)*Math.sin(dec)+Math.cos(la)*Math.cos(dec)*Math.cos(ha));
+    const az=Math.atan2(-Math.sin(ha),Math.tan(dec)*Math.cos(la)-Math.sin(la)*Math.cos(ha));
+    return {el,az};
+  }
+  const _cT=new THREE.Color(),_cB=new THREE.Color();
+  const dT=new THREE.Color(0x2e6fc9),dB=new THREE.Color(0xcfe7ff),nT=new THREE.Color(0x070a18),nB=new THREE.Color(0x16213f),uT=new THREE.Color(0x33285c),uB=new THREE.Color(0xff8a47),_warm=new THREE.Color(0xff9a55),_haze=new THREE.Color(0x9a8a6a);
+  const sunDir=new THREE.Vector3(); let nightF=0;
+  function updateSky(dtSky){
+    skyTime=new Date(skyTime.getTime()+dtSky*1000);
+    const s=solar(skyTime,data.lat,data.lon);
+    sunDir.set(Math.cos(s.el)*Math.sin(s.az),Math.sin(s.el),Math.cos(s.el)*Math.cos(s.az)).normalize();
+    const elev=sunDir.y, day=clamp((elev+0.05)/0.32,0,1), dusk=clamp(1-Math.abs(elev)/0.26,0,1); nightF=1-day;
+    _cT.copy(nT).lerp(dT,day).lerp(uT,dusk*0.5); _cB.copy(nB).lerp(dB,day).lerp(uB,dusk*0.7);
+    const aqi=data.aqi?data.aqi.aqi:20, haze=clamp(aqi/160,0,1)*0.4; _cB.lerp(_haze,haze);
+    skyMat.uniforms.top.value.copy(_cT); skyMat.uniforms.bottom.value.copy(_cB); scene.fog.color.copy(_cB);
+    scene.fog.density=0.0026+haze*0.006+(data.weather&&data.weather.cat==='fog'?0.006:0);
+    sunLight.intensity=0.12+day*2.2; sunLight.color.setHex(0xffffff).lerp(_warm,dusk);
+    hemiLight.intensity=0.3+day*0.7; hemiLight.color.copy(_cB); ambient.intensity=0.18+day*0.22;
+    const C=controls.target;
+    sunLight.position.set(C.x+sunDir.x*150,C.y+sunDir.y*150,C.z+sunDir.z*150); sunLight.target.position.copy(C); sunLight.target.updateMatrixWorld();
+    const he=clamp(controls.getDistance()*0.62,22,175), sc=sunLight.shadow.camera; if(Math.abs(sc.right-he)>1.5){ sc.left=-he; sc.right=he; sc.top=he; sc.bottom=-he; sc.updateProjectionMatrix(); }
+    sunMesh.position.copy(sunDir).multiplyScalar(820); sunMesh.visible=elev>-0.15;
+    sunSprite.position.copy(sunMesh.position); sunSprite.material.opacity=clamp(elev*2+0.3,0,1);
+    moonMesh.position.copy(sunDir).multiplyScalar(-820); moonMesh.visible=elev<0.1;
+    starMat.opacity=clamp(1-day*1.5,0,1);
+  }
+
+  // ============ 实时数据 ============
+  function wcat(c){ if(c===0||c===1)return'clear'; if(c===2||c===3)return'clouds'; if(c===45||c===48)return'fog'; if((c>=51&&c<=67)||(c>=80&&c<=82))return'rain'; if((c>=71&&c<=77)||c===85||c===86)return'snow'; if(c>=95)return'storm'; return'clouds'; }
+  async function fetchWeather(){
+    try{ const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${data.lat}&longitude=${data.lon}&current=temperature_2m,apparent_temperature,precipitation,weather_code,cloud_cover,wind_speed_10m&timezone=auto`); const j=await r.json(); const c=j.current;
+      data.weather={temp:c.temperature_2m,feels:c.apparent_temperature,code:c.weather_code,cloud:c.cloud_cover,wind:c.wind_speed_10m,cat:wcat(c.weather_code)}; data.on.weather=true; }catch(e){ data.on.weather=false; }
+    try{ const r=await fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${data.lat}&longitude=${data.lon}&current=european_aqi,pm2_5`); const j=await r.json();
+      data.aqi={aqi:Math.round(j.current.european_aqi),pm25:j.current.pm2_5}; data.on.aqi=true; if(!sim.started) sim.pollution=clamp(data.aqi.aqi*0.55,8,95); }catch(e){ data.on.aqi=false; }
+    applyWeather();
+  }
+  async function fetchFx(){ try{ const r=await fetch('https://open.er-api.com/v6/latest/USD'); const j=await r.json(); if(j&&j.rates){ data.fx={CNY:j.rates.CNY,EUR:j.rates.EUR,JPY:j.rates.JPY}; data.on.fx=true; } }catch(e){ data.on.fx=false; } }
+  async function fetchCrypto(){ try{ const r=await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true'); const j=await r.json();
+    data.crypto={btc:j.bitcoin.usd,btcChg:j.bitcoin.usd_24h_change,eth:j.ethereum.usd,ethChg:j.ethereum.usd_24h_change}; data.on.crypto=true; }catch(e){ data.on.crypto=false; } }
+  async function fetchQuakes(){ try{ const r=await fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson'); const j=await r.json(); data.quakes=j.features||[]; data.on.quake=true;
+    for(const f of data.quakes){ const id=f.id; if(data.seenQuakes.has(id))continue; data.seenQuakes.add(id); if(!sim.started)continue;
+      const mag=f.properties.mag, qlon=f.geometry.coordinates[0], qlat=f.geometry.coordinates[1], dist=haversine(data.lat,data.lon,qlat,qlon);
+      if(mag>=5.5||(mag>=4&&dist<800)) triggerQuake(mag,dist,f.properties.place); } }catch(e){ data.on.quake=false; } }
+  function haversine(a1,o1,a2,o2){ const R=6371,r=Math.PI/180,da=(a2-a1)*r,doo=(o2-o1)*r; const x=Math.sin(da/2)**2+Math.cos(a1*r)*Math.cos(a2*r)*Math.sin(doo/2)**2; return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x)); }
+  async function geocode(name){ try{ const r=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(name)}&count=1&language=zh`); const j=await r.json(); if(j.results&&j.results[0]){ const g=j.results[0]; data.lat=g.latitude; data.lon=g.longitude; data.city=g.name; data.population=g.population||0; return true; } }catch(e){} return false; }
+  async function reverseGeo(){ try{ const r=await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${data.lat}&longitude=${data.lon}&localityLanguage=zh`); const j=await r.json(); const nm=j.city||j.locality||j.principalSubdivision; if(nm) data.city=nm; }catch(e){} }
+  async function fetchPopulation(){ if(data.population>1000) return;
+    const nm=((data.city||'').replace(/(市辖区|特别行政区|自治区|自治州|地区|盟|市|区|县|省|州)$/,''))||data.city;
+    try{ const r=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(nm)}&count=1&language=zh`); const j=await r.json(); if(j.results&&j.results[0]&&j.results[0].population) data.population=j.results[0].population; }catch(e){} }
+  function seedPopulation(){ if(data.population>1000){ sim.population=data.population; sim.popScale=clamp(data.population/120000,1,400); logEv('👥 接入真实人口约 '+fmt(data.population),'good'); } }
+  function locate(){ return new Promise(res=>{ if(!navigator.geolocation){res(false);return;} navigator.geolocation.getCurrentPosition(p=>{data.lat=p.coords.latitude;data.lon=p.coords.longitude;data.city='你的位置';data.on.geo=true;res(true);},()=>res(false),{timeout:6000,maximumAge:600000}); }); }
+  async function refreshAll(){ await Promise.allSettled([fetchWeather(),fetchFx(),fetchCrypto(),fetchQuakes()]); updateLive(); }
+
+  function applyWeather(){ const w=data.weather; if(!w)return; rain.visible=(w.cat==='rain'||w.cat==='storm'); snow.visible=(w.cat==='snow');
+    const cloudy=w.cloud!=null?w.cloud/100:(w.cat==='clear'?0.1:0.7); clouds.forEach((c,i)=>c.visible=i<Math.round(cloudy*clouds.length)); }
+
+  // ============ 灾害 ============
+  function triggerQuake(mag,dist,place){
+    sim.quakeShake=clamp((mag-3)*0.5,0.3,3.5)*(1-sim.resilience*0.6);
+    const dmgN=Math.round(clamp((mag-4)*2,1,12)*(1-sim.resilience*0.5)); let hit=0;
+    for(const b of [...buildings].sort(()=>Math.random()-0.5)){ if(hit>=dmgN)break; if(b.damaged>0||b.fixed)continue; b.damaged=1; b.targetH*=rand(0.4,0.7); b.mat.color.offsetHSL(0,-0.3,-0.15); hit++; }
+    sim.happiness=clamp(sim.happiness-clamp((mag-4)*6,3,30),0,100); sim.economy=clamp(sim.economy-clamp((mag-4)*4,2,20),20,400);
+    logEv(`⚠️ M${mag.toFixed(1)} 地震！${place?('（'+place+'，约'+Math.round(dist)+'km）'):''} ${hit}栋受损`,'bad'); toast('⚠️ 地震！');
+    recentQuake=12; for(const c of citizens) remember(c,'经历了地震'); quakeSound();
+  }
+
+  // ============ 模拟推进 ============
+  function recountInfra(){
+    const c={com:0,res:0,ind:0,hospital:0,school:0,stadium:0,power:0,wind:infra.wind,solar:infra.solar,tower:0,park:parks.length,highway:infra.highway,rail:infra.rail,airport:infra.airport};
+    for(const b of buildings) c[b.type]=(c[b.type]||0)+1;
+    Object.assign(infra,c);
+  }
+  function computeServices(){
+    const pop=sim.population, popU=pop/1e5, ps=sim.popScale;
+    const supply = (infra.power*45 + infra.wind*4 + infra.solar*0.6 + 12)*ps;
+    const demand = popU*9 + buildings.length*0.18;
+    sim.powerRatio = clamp(supply/Math.max(1,demand),0,2);
+    const jobs = (infra.com*1400 + infra.ind*2600 + infra.power*400)*ps;
+    sim.employment = clamp(jobs/Math.max(1,pop*0.5),0,1.15);
+    sim.health = clamp((infra.hospital*70000*ps)/Math.max(1,pop)*(1-sim.pollution/220),0,1.3);
+    sim.education = clamp((infra.school*55000*ps)/Math.max(1,pop),0,1.3);
+    const cap = 0.6 + (infra.highway?0.5:0) + (infra.rail?0.5:0);
+    sim.traffic = clamp(popU/(cap*6*ps),0,1.5);
+  }
+  function simTick(dy){
+    sim.yearF+=dy;
+    const eduBoost = (sim.education-0.6)*0.05;
+    sim.tech=clamp(sim.tech+(0.07+sim.techBoost+eduBoost)*dy,0,3.999);
+    sim.techBoost=Math.max(0,sim.techBoost-0.4*dy); sim.econPolicy*=Math.max(0,1-0.5*dy);
+    const newEra=clamp(Math.floor(sim.tech),0,3); if(newEra>sim.era){ sim.era=newEra; onEraUp(); }
+    computeServices();
+    if(realMode) sim.traffic=clamp(sim.traffic*0.5+trafficObserved*1.0,0,1.5);   // 真实路网拥堵反哺交通指标
+
+    let ecoT=100+sim.econPolicy*40 + (sim.employment-0.8)*60 + (sim.powerRatio<1?(sim.powerRatio-1)*80:0);
+    if(data.crypto) ecoT+=clamp(data.crypto.btcChg||0,-20,20)*1.2;
+    if(data.fx) ecoT+=(7.0-data.fx.CNY)*3;
+    sim.economy=clamp(lerp(sim.economy,ecoT,clamp(0.25*dy,0,1)),20,400);
+
+    const ind=(1-sim.green)*infra.ind*1.6 + buildings.length*0.02;
+    const polT=clamp(6+ind-sim.tech*5+(data.aqi?data.aqi.aqi*0.25:0)-infra.park*1.5,2,100);
+    sim.pollution=clamp(lerp(sim.pollution,polT,clamp(0.2*dy,0,1)),0,100);
+
+    const hapT=clamp(42 +(sim.economy-100)*0.12 +(100-sim.pollution)*0.22 +sim.green*18
+      +(sim.employment-0.8)*40 +(sim.health-0.7)*30 +(sim.education-0.6)*20 +(sim.powerRatio-1)*25 -sim.traffic*22, 0,100);
+    sim.happiness=clamp(lerp(sim.happiness,hapT,clamp(0.25*dy,0,1)),0,100);
+
+    const rate=(0.012*(sim.economy/100)+(sim.happiness-50)*0.0006 -sim.pollution*0.00012 +(sim.health-0.7)*0.01)*clamp(sim.powerRatio,0.4,1.1);
+    sim.population=clamp(sim.population*(1+rate*dy),5000,6e7);
+
+    // 城市随人口扩张（仅程序生成模式；真实地图模式城市固定）
+    if(!realMode){
+      const targetB=clamp(Math.round(plots.length*0.5+sim.population/2600+sim.era*8),60,plots.length);
+      if(buildings.length<targetB && Math.random()<0.6*dy*4){ const p=freePlot(); if(p){ makeBuilding(p); p.occupied=true; recountInfra(); } }
+    }
+    sim.green=clamp(sim.green+(0.015+sim.era*0.008+infra.wind*0.002)*dy*0.3,0,0.98);
+    crisisT-=dy; if(crisisT<=0 && Math.random()<0.15*dy){ crisisT=rand(5,12); triggerCrisis(); }
+    lifeT+=dy; if(lifeT>=1){ lifeT-=1; cityYearTick(); }
+    checkGoal();
+  }
+  function onEraUp(){
+    logEv(`🏙 城市迈入「${ERAS[sim.era]}」时代`,'good'); toast(`进入 ${ERAS[sim.era]}`);
+    const pal=PAL[sim.era];
+    for(const b of [...buildings].sort(()=>Math.random()-0.5).slice(0,Math.round(buildings.length*0.5))){
+      if(b.damaged||b.fixed)continue; b.targetH=clamp(b.targetH*rand(1.12,1.45),3,70); b.era=sim.era;
+      const set=b.type==='com'?pal.com:b.type==='ind'?pal.ind:pal.res;
+      b.mat.color.copy(new THREE.Color(set[0]).lerp(new THREE.Color(set[1]),Math.random())); b.mat.emissive.copy(new THREE.Color(pal.em)); b.mat.metalness=sim.era>=1?0.5:0.15;
+    }
+  }
+
+  // ============ 干预 / 建造 ============
+  function intervene(act){
+    if(act==='green'){ sim.green=clamp(sim.green+0.12,0,0.98); sim.pollution=clamp(sim.pollution-10,0,100); sim.economy=clamp(sim.economy-6,20,400); logEv('🌱 环保政策：污染↓ 清洁能源↑','good'); }
+    else if(act==='eco'){ sim.econPolicy+=0.8; sim.pollution=clamp(sim.pollution+6,0,100); logEv('💰 经济刺激：经济↑ 污染↑','warn'); }
+    else if(act==='tech'){ sim.techBoost+=0.6; sim.economy=clamp(sim.economy-5,20,400); logEv('🔬 科技投资：加速迈向未来','good'); }
+    else if(act==='shield'){ sim.resilience=clamp(sim.resilience+0.15,0,0.95); sim.economy=clamp(sim.economy-5,20,400); logEv('🛡 防灾加固：抗灾能力↑','good'); }
+    updateStats();
+  }
+  function buildAction(kind){
+    const COST={hospital:800,school:600,factory:400,power:1000,wind:500,park:300}, cost=COST[kind]||0;
+    if(sim.started && sim.treasury<cost){ toast('💰 市库不足（需 $'+cost+'）'); logEv('💰 市库不足，无法建造','bad'); return; }
+    const p=freePlot();
+    if(kind==='hospital'){ if(!p)return nofree(); makeHospital(p); logEv('🏥 新建医院：医疗↑ 幸福↑','good'); }
+    else if(kind==='school'){ if(!p)return nofree(); makeSchool(p); logEv('🎓 新建学校：教育↑ 科技加速','good'); }
+    else if(kind==='factory'){ if(!p)return nofree(); p.zone='ind'; makeBuilding(p); p.occupied=true; logEv('🏭 新建工厂：就业↑ 经济↑ 污染↑','warn'); }
+    else if(kind==='power'){ if(!p)return nofree(); makePowerPlant(p, sim.era>=2); logEv('⚡ 新建发电厂：供电↑','good'); }
+    else if(kind==='wind'){ const g=new THREE.Group(); const x=-SPAN/2-rand(8,28), z=-SPAN/2-rand(2,30);
+      const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.25,0.4,12,8),smat(0xeeeeee)); pole.position.y=6; pole.castShadow=true; g.add(pole);
+      const hub=new THREE.Group(); hub.position.set(0,12,0.5); for(let b=0;b<3;b++){ const bl=new THREE.Mesh(new THREE.BoxGeometry(0.3,7,0.6),smat(0xf4f4f4)); bl.position.y=3.5; const arm=new THREE.Group(); arm.add(bl); arm.rotation.z=b*Math.PI*2/3; hub.add(arm); }
+      g.add(hub); g.position.set(x,0,z); activeGroup.add(g); turbines.push(hub); infra.wind++; sim.green=clamp(sim.green+0.04,0,0.98); logEv('🍃 新建风电：清洁能源↑','good'); }
+    else if(kind==='park'){ if(!p)return nofree(); makePark(p); logEv('🌳 新建公园：污染↓ 幸福↑','good'); }
+    sim.treasury-=cost; recountInfra(); updateStats();
+  }
+  function nofree(){ logEv('没有空地了，试试扩大或拆除','bad'); }
+
+  // ============ UI ============
+  function setupUI(){
+    $('startBtn').onclick=startGame;
+    $('cPlay').onclick=()=>{ sim.running=!sim.running; $('playIc').textContent=sim.running?'⏸':'▶'; $('cPlay').lastChild.textContent=sim.running?'暂停':'继续'; };
+    $('cSpeed').onclick=()=>{ sim.speed=sim.speed>=4?1:sim.speed*2; $('speed').textContent=sim.speed+'×'; };
+    $('cQuake').onclick=()=>triggerQuake(rand(5,6.8),rand(5,200),'模拟演练');
+    document.querySelectorAll('.btn[data-act]').forEach(b=>b.onclick=()=>intervene(b.dataset.act));
+    document.querySelectorAll('.btn[data-build]').forEach(b=>b.onclick=()=>buildAction(b.dataset.build));
+    $('cityGo').onclick=switchCity; $('cityName').addEventListener('keydown',e=>{ if(e.key==='Enter')switchCity(); });
+  }
+  async function switchCity(){ const name=$('cityName').value.trim(); if(!name)return; const ok=await geocode(name);
+    if(!ok){ logEv('未找到该城市','bad'); return; }
+    $('cityName').value=''; logEv(`📍 切换到 ${data.city}，重建中…`,''); seedPopulation(); await refreshAll();
+    const osm=await fetchOSM(550);
+    if(osm && osm.buildings.length>=15){ if(realGroup){ scene.remove(realGroup); realGroup=null; } realMode=false; buildRealCity(osm); }
+    else logEv('该城市真实地图数据不足','bad'); }
+  async function startGame(){
+    if(sim.started)return; initAudio(); $('loadnote').textContent='正在定位并获取实时数据…';
+    const got=await locate(); if(!got) $('loadnote').textContent='使用默认城市（北京），可稍后切换…';
+    await reverseGeo(); await fetchPopulation(); seedPopulation();
+    await refreshAll(); await tryRealCity(); recountInfra(); sim.started=true; sim.running=true; controls.autoRotate=false;
+    $('overlay').classList.add('fade'); setTimeout(()=>$('overlay').style.display='none',500);
+    logEv(`🌆 城市建立于 ${data.city} · 公元 ${startYear} 年`,'good');
+    setInterval(fetchWeather,9*60*1000); setInterval(fetchFx,30*60*1000); setInterval(fetchCrypto,3*60*1000); setInterval(fetchQuakes,3*60*1000);
+  }
+  function updateLive(){
+    $('liveDot').className='dot'+((data.on.weather||data.on.fx||data.on.crypto)?' on':'');
+    $('vCity').textContent=data.city+` (${data.lat.toFixed(1)},${data.lon.toFixed(1)})`;
+    if(data.population>1000) $('vRealPop').textContent=fmt(data.population);
+    if(data.weather){ const w=data.weather, names={clear:'☀️ 晴',clouds:'⛅ 多云',rain:'🌧 雨',snow:'❄️ 雪',fog:'🌫 雾',storm:'⛈ 雷暴'};
+      $('vWeather').textContent=names[w.cat]||'—'; $('vTemp').textContent=`${w.temp!=null?w.temp.toFixed(0):'—'}° (体感${w.feels!=null?w.feels.toFixed(0):'—'}°)`; }
+    if(data.aqi){ const a=data.aqi.aqi, lvl=a<=20?'优':a<=40?'良':a<=60?'中':a<=80?'差':'很差'; $('vAqi').innerHTML=`${a} <small>${lvl}</small>`; }
+    if(data.fx) $('vFx').textContent=`¥${data.fx.CNY!=null?data.fx.CNY.toFixed(3):'—'}`;
+    if(data.crypto){ const c=data.crypto, cls=c.btcChg>=0?'up':'down', sg=c.btcChg>=0?'▲':'▼'; $('vBtc').innerHTML=`$${Math.round(c.btc).toLocaleString()} <small class="${cls}">${sg}${Math.abs(c.btcChg).toFixed(1)}%</small>`; }
+    if(data.quakes&&data.quakes.length){ const q=data.quakes.reduce((a,b)=>b.properties.mag>a.properties.mag?b:a); $('vQuake').textContent=`M${q.properties.mag!=null?q.properties.mag.toFixed(1):'—'}`; } else if(data.on.quake) $('vQuake').textContent='平静';
+  }
+  function setBar(id,pct,color){ const i=$(id); i.style.width=clamp(pct,0,100)+'%'; if(color)i.style.background=color; }
+  function svc(id,val,goodHigh){ const e=$(id); e.textContent=val; }
+  function updateStats(){
+    $('yearBig').textContent='公元 '+(startYear+Math.floor(sim.yearF))+' 年';
+    $('era').textContent=ERAS[sim.era]; $('vPop').textContent=fmt(sim.population);
+    const tre=$('vTreasury'); if(tre){ tre.textContent='$'+fmt(Math.round(sim.treasury)); tre.style.color=sim.treasury<0?'var(--bad)':'var(--text)'; }
+    $('vEco').textContent=Math.round(sim.economy); $('vTech').textContent=Math.round(sim.tech/3.999*100)+'%';
+    $('vPol').textContent=Math.round(sim.pollution); $('vHap').textContent=Math.round(sim.happiness); $('vGreen').textContent=Math.round(sim.green*100)+'%';
+    setBar('bEco',sim.economy/2,sim.economy>=100?'var(--good)':'var(--warn)'); setBar('bTech',sim.tech/3.999*100);
+    setBar('bPol',sim.pollution,sim.pollution>60?'var(--bad)':'var(--warn)'); setBar('bHap',sim.happiness,sim.happiness<40?'var(--bad)':'var(--acc)'); setBar('bGreen',sim.green*100);
+    const C=v=>v>=1?'var(--good)':v>=0.7?'var(--warn)':'var(--bad)';
+    const pw=$('svPower'); pw.textContent=Math.round(sim.powerRatio*100)+'%'; pw.style.color=C(sim.powerRatio);
+    const jb=$('svJob'); jb.textContent=Math.round(sim.employment*100)+'%'; jb.style.color=C(sim.employment);
+    const hl=$('svHealth'); hl.textContent=Math.round(sim.health*100)+'%'; hl.style.color=C(sim.health);
+    const ed=$('svEdu'); ed.textContent=Math.round(sim.education*100)+'%'; ed.style.color=C(sim.education);
+    const tr=$('svTraffic'); const tl=sim.traffic<0.5?'顺畅':sim.traffic<0.9?'一般':'拥堵'; tr.textContent=tl; tr.style.color=sim.traffic<0.5?'var(--good)':sim.traffic<0.9?'var(--warn)':'var(--bad)';
+    updateGoalUI();
+  }
+  function logEv(msg,cls){ const l=$('log'),d=document.createElement('div'); d.className='ev '+(cls||''); d.textContent=msg; l.appendChild(d); while(l.children.length>5) l.removeChild(l.firstChild); }
+  let toastT=0; function toast(m){ const t=$('toast'); t.textContent=m; t.style.opacity='1'; toastT=2; }
+
+  // ============ 市民 / NPC / 操控 / 干预 ============
+  const BOX=new THREE.BoxGeometry(1,1,1), UP=new THREE.Vector3(0,1,0);
+  const SUR='李王张刘陈杨赵黄周吴徐孙马朱胡林何高罗郑'.split('');
+  const GIV=['伟','芳','娜','敏','静','丽','强','磊','军','洋','勇','艳','杰','娟','涛','明','超','霞','平','刚','建','文','华','金','晓','梅','鹏','宇','婷','浩'];
+  let citizens=[], peopleGroup, selMarker, ctrlMarker, bubbles=[], socialT=0, recentQuake=0;
+  const places={home:[],work:[],food:[],shop:[],leisure:[]};
+  let roadCoords=[], controlled=null, selected=null, camMode='god';
+  let raycaster, ndc=new THREE.Vector2(), pdown={x:0,y:0,t:0,moved:false};
+  const keys2={};
+
+  function aLerp(a,b,t){ let d=b-a; while(d>Math.PI)d-=6.283; while(d<-Math.PI)d+=6.283; return a+d*Math.min(1,t); }
+  function nearRoad(v){ let best=roadCoords[0]; for(const c of roadCoords) if(Math.abs(c-v)<Math.abs(best-v)) best=c; return best; }
+  function makePerson(cloth){
+    const g=new THREE.Group();
+    const torso=new THREE.Mesh(BOX,smat(cloth)); torso.scale.set(0.34,0.5,0.2); torso.position.y=0.95; g.add(torso);
+    const head=new THREE.Mesh(BOX,smat(0xf0c49a)); head.scale.set(0.24,0.26,0.22); head.position.y=1.34; g.add(head);
+    const hair=new THREE.Mesh(BOX,smat(0x2a2018)); hair.scale.set(0.26,0.1,0.24); hair.position.y=1.46; g.add(hair);
+    const lm=smat(0x2c3242);
+    const legL=new THREE.Group(); legL.position.set(0.09,0.7,0); const ll=new THREE.Mesh(BOX,lm); ll.scale.set(0.12,0.5,0.12); ll.position.y=-0.25; legL.add(ll); g.add(legL);
+    const legR=new THREE.Group(); legR.position.set(-0.09,0.7,0); const lr=new THREE.Mesh(BOX,lm); lr.scale.set(0.12,0.5,0.12); lr.position.y=-0.25; legR.add(lr); g.add(legR);
+    return {group:g, legL, legR};
+  }
+  function buildPlaces(){
+    roadCoords=[]; for(let i=0;i<N;i++) if(ROAD(i)) roadCoords.push(wpos(i));
+    const add=(arr,b,type)=>arr.push({x:b.plot.x,z:b.plot.z,type,name:b.realName||null,b});
+    for(const b of buildings){
+      if(b.type==='res') add(places.home,b,'home');
+      else if(b.type==='com'){ const r=Math.random(); if(r<0.3) add(places.food,b,'food'); else if(r<0.6) add(places.shop,b,'shop'); else add(places.work,b,'work'); }
+      else if(['ind','power','tower','hospital','school','stadium'].includes(b.type)) add(places.work,b,'work');
+    }
+    for(const p of parks) places.leisure.push({x:p.x,z:p.z,type:'leisure',name:'公园',b:null});
+    if(!places.home.length) places.home.push({x:0,z:0,type:'home'});
+    if(!places.work.length) places.work=places.home.slice();
+    if(!places.food.length) places.food=places.work.slice(0,3);
+    if(!places.shop.length) places.shop=places.work.slice(0,3);
+    if(!places.leisure.length) places.leisure=places.home.slice(0,3);
+  }
+  const anyPlace=t=>places[t][Math.floor(Math.random()*places[t].length)];
+  function nearPlace(t,x,z){ let best=null,bd=1e18; for(const p of places[t]){ const d=(p.x-x)**2+(p.z-z)**2; if(d<bd){bd=d;best=p;} } return best||anyPlace(t); }
+  function jobFor(p){ const b=p&&p.b; if(!b) return '自由职业';
+    if(b.type==='hospital')return pick(['医生','护士']); if(b.type==='school')return '教师';
+    if(b.type==='ind')return pick(['工人','技工']); if(b.type==='power')return '电厂技师'; if(b.type==='tower')return '通信工程师'; if(b.type==='stadium')return '场馆员工';
+    return pick(['职员','工程师','经理','设计师','程序员','会计','销售']); }
+
+  function initCitizens(){
+    buildPlaces();
+    peopleGroup=new THREE.Group(); scene.add(peopleGroup); raycaster=new THREE.Raycaster();
+    selMarker=new THREE.Mesh(new THREE.ConeGeometry(0.45,1,4), new THREE.MeshBasicMaterial({color:0x5fd0ff})); selMarker.rotation.x=Math.PI; selMarker.visible=false; scene.add(selMarker);
+    ctrlMarker=new THREE.Mesh(new THREE.ConeGeometry(0.55,1.2,4), new THREE.MeshBasicMaterial({color:0xffd24a})); ctrlMarker.rotation.x=Math.PI; ctrlMarker.visible=false; scene.add(ctrlMarker);
+    spawnCitizens(80); buildCrowdMesh(); spawnCrowd(250);
+  }
+  function spawnCitizens(M){
+    for(let i=0;i<M;i++){
+      const home=anyPlace('home'), work=anyPlace('work'), role=Math.random()<0.16?'student':'worker';
+      const pr=makePerson(new THREE.Color().setHSL(Math.random(),0.45,0.5).getHex());
+      const c={ name:pick(SUR)+pick(GIV), age: role==='student'?Math.floor(rand(7,22)):Math.floor(rand(22,68)), role,
+        home, work: role==='student'?nearPlace('work',home.x,home.z):work, job: role==='student'?'学生':jobFor(work),
+        lunch:nearPlace('food',work.x,work.z), shop:anyPlace('shop'), fav:anyPlace('leisure'),
+        needs:{energy:rand(50,95),fullness:rand(40,90),social:rand(40,90),fun:rand(40,90),money:rand(25,80),mood:70},
+        traits:{energy:1,fullness:1,social:rand(0.6,1.6),fun:rand(0.6,1.6),money:rand(0.7,1.6)},
+        mesh:pr.group, legL:pr.legL, legR:pr.legR, x:home.x+rand(-1.5,1.5), z:home.z+rand(-1.5,1.5), dir:rand(0,6.28),
+        speed:rand(2.6,4.2)*(role==='student'?0.9:1), phase:Math.random()*6, state:'home', drive:'',
+        action:null, redecide:true, atPlace:false, dwellT:0, thinkT:rand(0,3), friends:{}, met:0, talkT:rand(2,6), lastEvent:'', memory:[], reflection:'',
+        lifeGoal:pick(LIFEGOALS), lifeDone:false, waypoints:[], wpi:0, moving:false, forceGoal:null };
+      pr.group.userData.cit=c; pr.group.position.set(c.x,0,c.z); peopleGroup.add(pr.group); citizens.push(c);
+    }
+  }
+  function skyHour(){ return skyTime.getHours()+skyTime.getMinutes()/60; }
+  // 效用制 AI + Smart Object：场所"广播"能满足哪些需求，市民按效用打分 + top-N 加权随机选择
+  const NEEDZH={energy:'精力',fullness:'饥饿',social:'社交',fun:'娱乐',money:'金钱',comfort:'放松'};
+  const STATEZH={sleep:'睡觉',eatout:'外出就餐',eathome:'在家吃饭',work:'工作',shop:'购物',relax:'休闲娱乐',home:'在家',goto:'前往中'};
+  const ACTS=[
+    {type:'sleep',  adv:{energy:1.0},                 dwell:[3,7],   pt:'home',    drive:'energy',   bias:h=>(h>=22||h<7)?1.4:(h>=13&&h<15?0.3:-0.5)},
+    {type:'eatout', adv:{fullness:1.0,fun:0.2,social:0.2}, dwell:[1,2.5], pt:'food', drive:'fullness', bias:h=>((h>=7&&h<9)||(h>=11.5&&h<13.5)||(h>=18&&h<20))?0.7:-0.1},
+    {type:'eathome',adv:{fullness:0.85},              dwell:[1,2],   pt:'home',    drive:'fullness', bias:h=>0},
+    {type:'work',   adv:{money:1.0,energy:-0.35,fun:-0.1}, dwell:[3,5], pt:'work',  drive:'money',    bias:h=>(h>=9&&h<18)?1.0:-0.8},
+    {type:'shop',   adv:{fun:0.6,social:0.3},          dwell:[1,2],   pt:'shop',    drive:'fun',      bias:h=>(h>=10&&h<21)?0.25:-0.6},
+    {type:'relax',  adv:{fun:1.0,social:0.5,energy:0.15}, dwell:[1,3], pt:'leisure',drive:'fun',      bias:h=>(h>=16&&h<22)?0.5:0.05},
+    {type:'home',   adv:{energy:0.25,fun:0.1},         dwell:[1,2.5], pt:'home',    drive:'comfort',  bias:h=>(h>=20||h<8)?0.35:-0.25}
+  ];
+  function urgency(v){ const d=clamp((100-(v==null?70:v))/100,0,1); return d*d; }   // 阈值前平缓、接近耗尽时陡升
+  function placeFor(c,pt){ if(pt==='home') return c.home; if(pt==='work') return c.work; return nearPlace(pt,c.x,c.z); }
+  function weightedPick(arr){ if(arr.length<2) return arr[0]; let mn=1e9; for(const a of arr) mn=Math.min(mn,a._u); let tot=0; for(const a of arr){ a._w=a._u-mn+0.15; tot+=a._w; } let r=Math.random()*tot; for(const a of arr){ r-=a._w; if(r<=0) return a; } return arr[0]; }
+  function chooseAction(c,h){
+    if(c.forceGoal) return {type:'goto', place:c.forceGoal, adv:{}, dwell:rand(1.5,3), driveLabel:'你的指令'};
+    const cand=[];
+    for(const a of ACTS){
+      const p=placeFor(c,a.pt); if(!p) continue;
+      let u=0; for(const n in a.adv){ if(a.adv[n]>0) u+=urgency(c.needs[n])*a.adv[n]*(c.traits[n]||1); }
+      u += a.bias(h)*0.5;
+      u -= Math.hypot(p.x-c.x,p.z-c.z)*0.0009;
+      u += (Math.random()-0.5)*0.08;
+      cand.push({_u:u, a, p});
+    }
+    if(!cand.length) return {type:'home', place:c.home, adv:{}, dwell:2, driveLabel:''};
+    cand.sort((x,y)=>y._u-x._u);
+    const best=cand[0]._u, top=cand.filter(x=>x._u>=best-0.35).slice(0,4);
+    const ch=weightedPick(top), a=ch.a;
+    return {type:a.type, place:ch.p, adv:a.adv, dwell:rand(a.dwell[0],a.dwell[1]), driveLabel:NEEDZH[a.drive]||''};
+  }
+  function routeTo(c,t){ if(realMode) return roadPath(c.x,c.z,t.x,t.z);
+    const vx=nearRoad(c.x), hz=nearRoad(t.z), ex=nearRoad(t.x);
+    return [ {x:vx,z:c.z},{x:vx,z:hz},{x:ex,z:hz},{x:ex,z:t.z},{x:t.x,z:t.z} ]; }
+  function decayNeeds(c,dt){ const n=c.needs,k=dt*1.4;
+    n.energy=clamp(n.energy-k*0.5,0,100); n.fullness=clamp(n.fullness-k*0.75,0,100); n.social=clamp(n.social-k*0.4,0,100);
+    n.fun=clamp(n.fun-k*0.5,0,100); n.money=clamp(n.money-k*0.15,0,100); }
+  function applyAction(c,dt){ const a=c.action; if(!a||!a.adv) return; const k=dt*7;
+    for(const nm in a.adv){ if(c.needs[nm]!=null) c.needs[nm]=clamp(c.needs[nm]+a.adv[nm]*k,0,100); }
+    if(a.type==='eatout') c.needs.money=clamp(c.needs.money-dt*2.5,0,100);
+    if(a.type==='shop') c.needs.money=clamp(c.needs.money-dt*3.5,0,100); }
+  function moveAlong(c,dt,sp){ if(!c.waypoints||c.wpi>=c.waypoints.length){ c.moving=false; return true; }
+    const w=c.waypoints[c.wpi],dx=w.x-c.x,dz=w.z-c.z,d=Math.hypot(dx,dz);
+    if(d<0.45){ c.wpi++; return c.wpi>=c.waypoints.length; }
+    c.x+=dx/d*sp*dt; c.z+=dz/d*sp*dt; c.dir=Math.atan2(dx,dz); c.moving=true; return false; }
+  function animPerson(c,dt){ c.mesh.position.set(c.x,0,c.z); c.mesh.rotation.y=aLerp(c.mesh.rotation.y,c.dir,10*dt);
+    if(c.moving){ c.phase+=dt*9; const s=Math.sin(c.phase)*0.5; c.legL.rotation.x=s; c.legR.rotation.x=-s; } else { c.legL.rotation.x*=0.85; c.legR.rotation.x*=0.85; } }
+  // 社交 / 记忆 / 对话气泡
+  function bubble(c){ if(bubbles.length>14) return; const em=pick(['💬','😊','👋','🍻','😄','🙂','❤️']);
+    const cv=document.createElement('canvas'); cv.width=cv.height=64; const x=cv.getContext('2d'); x.font='44px sans-serif'; x.textAlign='center'; x.textBaseline='middle'; x.fillText(em,32,38);
+    const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthWrite:false,depthTest:false})); sp.scale.set(1.6,1.6,1); scene.add(sp); bubbles.push({c,sp,t:2.6}); }
+  function updateBubbles(dt){ for(let i=bubbles.length-1;i>=0;i--){ const b=bubbles[i]; b.t-=dt; if(b.t<=0){ scene.remove(b.sp); bubbles.splice(i,1); continue; } b.sp.position.set(b.c.x,2.7,b.c.z); b.sp.material.opacity=clamp(b.t/2.6,0,1); } }
+  function interact(a,b){
+    a.needs.social=clamp(a.needs.social+18,0,100); b.needs.social=clamp(b.needs.social+18,0,100);
+    a.needs.mood=clamp(a.needs.mood+4,0,100); b.needs.mood=clamp(b.needs.mood+4,0,100);
+    if(a.friends[b.name]==null){ a.friends[b.name]=0; a.met++; } if(b.friends[a.name]==null){ b.friends[a.name]=0; b.met++; }
+    a.friends[b.name]++; b.friends[a.name]++;
+    const close=a.friends[b.name]>4; a.lastEvent=(close?'和老友 ':'结识了 ')+b.name; b.lastEvent=(close?'和老友 ':'结识了 ')+a.name;
+    a.talkT=rand(8,16); b.talkT=rand(8,16); say(a,b); say(b,a);
+  }
+  function socialTick(){
+    for(let i=0;i<citizens.length;i++){ const a=citizens[i]; if(a.talkT>0){ a.talkT-=1; continue; } if(inside&&a===controlled) continue;
+      for(let j=i+1;j<citizens.length;j++){ const b=citizens[j]; if(b.talkT>0) continue;
+        const dx=a.x-b.x, dz=a.z-b.z; if(dx*dx+dz*dz<20){ interact(a,b); break; } } }
+  }
+  // 生成式智能体-lite：记忆 / 反思 / 模板对话（npcLine 即可替换为真实 LLM 调用的接口）
+  function remember(c,t){ if(!t) return; c.memory.push(t); if(c.memory.length>8) c.memory.shift(); }
+  function memText(a){ if(!a) return ''; const nm=a.place&&a.place.name?('「'+a.place.name+'」'):'';
+    return ({sleep:'睡了一觉',eatout:'在'+(nm||'外面')+'吃了饭',eathome:'在家吃了饭',work:'上了班',shop:'逛了逛'+nm,relax:'在'+(nm||'公园')+'放松',home:'在家待着',goto:'去了趟'+nm})[a.type]||''; }
+  function reflect(c){ const n=c.needs;
+    c.reflection = n.money<25?'得多挣点钱了' : n.energy<22?'好累，想好好休息' : n.fullness<22?'有点饿了' :
+      c.met>=5?'朋友越来越多，挺开心' : n.fun>76?'最近日子挺惬意' : (c.role==='student'?'好好上学吧' : pick(['为了生活继续打拼','想去看看新地方','日子就这么过着','有点想家'])); }
+  function npcLine(c,o){ const aff=c.friends[o.name]||0, n=c.needs;
+    if(recentQuake>0) return pick(['刚那地震太吓人了','还在后怕…','你没事吧？']);
+    if(aff>4) return pick(['嘿'+o.name+'，又见面啦！','老朋友，最近咋样？','改天一起吃饭？']);
+    if(n.fullness<30) return pick(['我快饿扁了','你知道哪家好吃吗？']);
+    if(n.energy<30) return pick(['今天好累啊','困死了…']);
+    if(n.money<30) return pick(['得多挣点钱啊','最近在拼命加班']);
+    return pick(['你好呀','今天天气不错','忙着呢？','我是'+c.name+'，你好']); }
+  function textBubble(c,text){ if(bubbles.length>12||!text) return;
+    const cv=document.createElement('canvas'), x=cv.getContext('2d'); x.font='22px sans-serif'; const w=Math.min(230,Math.ceil(x.measureText(text).width)+20); cv.width=w; cv.height=34;
+    x.font='22px sans-serif'; x.fillStyle='rgba(12,18,28,0.82)'; roundRect(x,0,0,w,34,8); x.fill(); x.fillStyle='#eaf4ff'; x.textBaseline='middle'; x.fillText(text,10,18);
+    const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthWrite:false,depthTest:false})); sp.scale.set(w*0.022,0.85,1); scene.add(sp); bubbles.push({c,sp,t:3.2}); }
+  function say(c,o){ if(Math.random()<0.6) textBubble(c,npcLine(c,o)); else bubble(c); remember(c,'和'+o.name+'聊了聊'); }
+  // 可选：WebLLM 本地大模型驱动对话（需 WebGPU + 一次性模型下载；否则回退模板）
+  let llmEngine=null, llmReady=false, llmLoading=false, llmBusy=false;
+  async function enableLLM(){
+    if(llmReady){ logEv('🤖 本地 AI 已启用','good'); return; }
+    if(llmLoading){ logEv('🤖 模型仍在加载…',''); return; }
+    if(!navigator.gpu){ logEv('⚠️ 浏览器不支持 WebGPU，无法启用本地 AI；继续使用模板对话','warn'); toast('不支持 WebGPU'); return; }
+    llmLoading=true; logEv('🤖 正在加载本地 AI 模型（首次需下载数百 MB，请耐心等待）…','');
+    try{
+      const webllm=await import('https://esm.run/@mlc-ai/web-llm');
+      llmEngine=await webllm.CreateMLCEngine('Qwen2.5-0.5B-Instruct-q4f16_1-MLC',{ initProgressCallback:p=>{ if(p&&p.text) logEv('🤖 '+String(p.text).slice(0,42),''); } });
+      llmReady=true; logEv('🤖 本地 AI 已就绪！点选市民→「交谈」试试','good'); toast('🤖 AI 就绪');
+    }catch(e){ logEv('🤖 AI 加载失败：'+String(e).slice(0,70),'bad'); }
+    llmLoading=false;
+  }
+  async function talkLLM(c){
+    if(!c) return;
+    if(!llmReady||llmBusy){ textBubble(c, npcLine(c,{name:'你',friends:{}})); if(!llmReady&&navigator.gpu) logEv('提示：点底部「AI对话」可启用本地大模型',''); return; }
+    llmBusy=true;
+    try{
+      const mood=c.needs.energy<30?'很累':c.needs.fullness<30?'有点饿':c.needs.money<30?'手头紧':c.needs.fun>70?'心情不错':'还好';
+      const sys='你叫'+c.name+'，'+c.age+'岁，职业是'+(c.role==='student'?'学生':c.job)+'，住在'+data.city+'。你现在'+mood+'。用一句不超过20个字的中文口语回应跟你打招呼的路人，符合身份与心情，不要解释、不要加引号。';
+      const r=await llmEngine.chat.completions.create({ messages:[{role:'system',content:sys},{role:'user',content:'你好，在忙什么呢？'}], max_tokens:48, temperature:0.9 });
+      let line=((r.choices&&r.choices[0]&&r.choices[0].message.content)||'').trim().replace(/\s+/g,' ').replace(/^["“]|["”]$/g,'').slice(0,28);
+      if(line){ textBubble(c,line); remember(c,'说："'+line+'"'); }
+    }catch(e){ textBubble(c, npcLine(c,{name:'你',friends:{}})); }
+    llmBusy=false;
+  }
+  function rethink(c,h){
+    c.thinkT=rand(3,6);
+    const a=chooseAction(c,h);
+    if(c.action && c.action.type===a.type && c.atPlace && !c.redecide && !c.forceGoal) return; // 同类动作进行中则不打断
+    c.action=a; c.state=a.type; c.drive=a.driveLabel||''; c.redecide=false; c.atPlace=false; c.dwellT=a.dwell;
+    c.waypoints=routeTo(c,a.place); c.wpi=0;
+  }
+  function updateCitizens(dt){
+    const h=skyHour();
+    for(const c of citizens){
+      if(camMode==='ground'&&c===controlled) continue;
+      c.thinkT-=dt;
+      if(c.redecide || !c.action || c.thinkT<=0) rethink(c,h);
+      if(!c.atPlace){ const arr=moveAlong(c,dt,c.speed); if(arr){ c.atPlace=true; c.moving=false; } }
+      else { applyAction(c,dt); c.dwellT-=dt; if(c.dwellT<=0){ remember(c,memText(c.action)); if(Math.random()<0.25) reflect(c); if(c.forceGoal) c.forceGoal=null; c.redecide=true; } }
+      decayNeeds(c,dt);
+      c.needs.mood=clamp((c.needs.energy+c.needs.fullness+c.needs.social+c.needs.fun+Math.min(100,c.needs.money))/5,0,100);
+      animPerson(c,dt);
+    }
+    const tt=performance.now()*0.005;
+    if(selected){ selMarker.visible=true; selMarker.position.set(selected.x,2.3+Math.sin(tt)*0.12,selected.z); } else selMarker.visible=false;
+    if(controlled&&camMode==='ground'){ ctrlMarker.visible=true; ctrlMarker.position.set(controlled.x,2.5,controlled.z); } else ctrlMarker.visible=false;
+  }
+  function updateControlled(dt){
+    if(camMode!=='ground'||!controlled) return; const c=controlled;
+    const f=new THREE.Vector3(); camera.getWorldDirection(f); f.y=0; if(f.lengthSq()<1e-4)f.set(0,0,-1); f.normalize();
+    const r=new THREE.Vector3().crossVectors(f,UP).normalize();
+    let mx=0,mz=0;
+    if(keys2.KeyW||keys2.ArrowUp){mx+=f.x;mz+=f.z;} if(keys2.KeyS||keys2.ArrowDown){mx-=f.x;mz-=f.z;}
+    if(keys2.KeyD||keys2.ArrowRight){mx+=r.x;mz+=r.z;} if(keys2.KeyA||keys2.ArrowLeft){mx-=r.x;mz-=r.z;}
+    const len=Math.hypot(mx,mz), sp=driving?18:((keys2.ShiftLeft||keys2.ShiftRight)?8:4.5);
+    if(len>0){ c.x+=mx/len*sp*dt; c.z+=mz/len*sp*dt; c.dir=Math.atan2(mx,mz); c.moving=true; } else c.moving=false;
+    if(inside){ c.x=clamp(c.x,-7,7); c.z=clamp(c.z,-5,5); } else { c.x=clamp(c.x,-SPAN/2-22,SPAN/2+22); c.z=clamp(c.z,-SPAN/2-22,SPAN/2+22); }
+    if(driving&&playerCar){ playerCar.position.set(c.x,0,c.z); playerCar.rotation.y=c.dir; } else animPerson(c,dt);
+    decayNeeds(c,dt);
+  }
+  function updateCameraMode(dt){ if(camMode==='ground'&&controlled){ controls.target.lerp(new THREE.Vector3(controlled.x,1.2,controlled.z),Math.min(1,8*dt)); } }
+
+  function initInteract(){
+    addEventListener('keydown',e=>{ keys2[e.code]=true; if(e.code==='KeyE') toggleInterior(); else if(e.code==='F5'){ e.preventDefault(); toggleView(); } else if(e.code==='KeyB') setMode(camMode==='god'?'ground':'god'); else if(e.code==='KeyF') toggleDrive(); else if(e.code==='Tab'){ e.preventDefault(); switchCharacter(); } else if(e.code==='KeyQ') showWheel(); else if(e.code==='KeyM') toggleMap(); else if(/^Digit[1-8]$/.test(e.code)) selectTool(parseInt(e.code.slice(5))-1); });
+    addEventListener('keyup',e=>{ keys2[e.code]=false; if(e.code==='KeyQ') hideWheel(); });
+    $('mapClose').onclick=toggleMap; $('mapCanvas').addEventListener('click',e=>{ const r=e.target.getBoundingClientRect(),W=520,span=300,S=W/span; setWaypoint((e.clientX-r.left-W/2)/S,(e.clientY-r.top-W/2)/S); drawMap(); });
+    const cv=renderer.domElement;
+    cv.addEventListener('pointerdown',e=>{ pdown={x:e.clientX,y:e.clientY,t:performance.now(),moved:false}; });
+    cv.addEventListener('pointermove',e=>{ if(Math.abs(e.clientX-pdown.x)+Math.abs(e.clientY-pdown.y)>6) pdown.moved=true; });
+    cv.addEventListener('pointerup',e=>{ if(!pdown.moved&&performance.now()-pdown.t<400){ if(!tryPlaceOrDemolish()) pickAt(e.clientX,e.clientY); } });
+    cv.addEventListener('contextmenu',e=>{ if(camMode==='ground'){ e.preventDefault(); const g=groundPoint(); if(g) demolishAt(snap(g.x),snap(g.z)); } });
+    addEventListener('wheel',e=>{ if(camMode==='ground') selectTool(hotSel+(e.deltaY>0?1:-1)); }, {passive:true});
+    $('modeTag').onclick=toggleCreative;
+    $('cGround').onclick=()=>setMode(camMode==='god'?'ground':'god');
+    $('cMap').onclick=cycleMap;
+    $('cAI').onclick=enableLLM;
+    $('cSound').onclick=toggleAudio;
+    $('cSave').onclick=saveLocal; $('cLoad').onclick=loadLocal; $('cShot').onclick=snapshot;
+    $('cGoals').onclick=openGoals;
+    $('cQual').onclick=cycleQuality;
+    $('citTalk').onclick=()=>{ if(selected) talkLLM(selected); };
+    $('citClose').onclick=()=>{ selected=null; $('cit').style.display='none'; };
+    $('citPossess').onclick=()=>{ if(selected){ controlled=selected; selected.forceGoal=null; setMode('ground'); toast('已附身 '+controlled.name); logEv('🎮 你正在操控 '+controlled.name+'（'+controlled.job+'）','good'); } };
+    $('citMoney').onclick=()=>{ if(selected){ selected.needs.money=clamp(selected.needs.money+30,0,100); selected.needs.mood=clamp(selected.needs.mood+12,0,100); logEv('💵 给了 '+selected.name+' 一笔钱','good'); fillPanel(); } };
+    $('citJob').onclick=()=>{ if(selected){ const w=anyPlace('work'); selected.work=w; selected.job=jobFor(w); selected.redecide=true; logEv('💼 '+selected.name+' 转行成为'+selected.job,''); fillPanel(); } };
+    $('citMood').onclick=()=>{ if(selected){ selected.needs.mood=clamp(selected.needs.mood+20,0,100); selected.needs.social=clamp(selected.needs.social+15,0,100); logEv('😊 鼓励了 '+selected.name,'good'); fillPanel(); } };
+    document.querySelectorAll('#citSend [data-go]').forEach(b=>b.onclick=()=>{ if(selected){ const t=b.dataset.go; selected.forceGoal=nearPlace(t,selected.x,selected.z); selected.redecide=true; logEv('📍 让 '+selected.name+' 前往'+({leisure:'公园',food:'餐厅',home:'家',work:'公司'}[t]||t),''); } });
+  }
+  function setMode(m){ if(inside) exitInterior(); camMode=m;
+    if(m==='ground'){ if(!controlled) controlled=selected||citizens[0]; controls.minDistance=4; controls.maxDistance=42; controls.maxPolarAngle=Math.PI*0.49;
+      const c=controlled; if(c){ controls.target.set(c.x,1.2,c.z); camera.position.set(c.x+7,5,c.z+7); }
+      $('cGround').firstChild.textContent='🛰'; $('cGround').lastChild.textContent='上帝视角'; $('ghint').style.display='block'; }
+    else { if(controlled) controlled.redecide=true; controls.minDistance=28; controls.maxDistance=320; controls.maxPolarAngle=Math.PI*0.495;
+      $('cGround').firstChild.textContent='👣'; $('cGround').lastChild.textContent='进入地面'; $('ghint').style.display='none'; }
+    applyHud();
+  }
+  function pickAt(px,py){ if(!citizens.length||!raycaster) return;
+    ndc.x=(px/innerWidth)*2-1; ndc.y=-(py/innerHeight)*2+1; raycaster.setFromCamera(ndc,camera);
+    const hits=raycaster.intersectObjects(peopleGroup.children,true);
+    if(hits.length){ let o=hits[0].object; while(o&&!o.userData.cit) o=o.parent; if(o&&o.userData.cit){ selected=o.userData.cit; $('cit').style.display='block'; fillPanel(); } }
+  }
+  function nbar(v){ const c=v>=60?'var(--good)':v>=30?'var(--warn)':'var(--bad)'; return `<div class="nb"><i style="width:${clamp(v,0,100)}%;background:${c}"></i></div>`; }
+  function fillPanel(){ const c=selected; if(!c) return;
+    $('citName').textContent=c.name+' · '+c.age+'岁';
+    $('citJobV').textContent=(c.role==='student'?'学生':c.job)+(c.work&&c.work.name?' · '+c.work.name:'');
+    let st=STATEZH[c.state]||c.state; if(c.state==='work'&&c.role==='student') st='上学';
+    $('citState').innerHTML='当前：'+st+(c.drive?('（为了'+c.drive+'）'):'')+'<br><span style="opacity:.62">认识 '+c.met+' 人'+(c.lastEvent?(' · 最近'+c.lastEvent):'')+'</span>'+'<br><span style="opacity:.62">🎯 愿望：'+c.lifeGoal+(c.lifeDone?'（已实现）':'')+'</span>'+(c.reflection?('<br><span style="opacity:.62">💭 '+c.reflection+'</span>'):'');
+    const L=(t,v)=>`<span>${t}</span>`+nbar(v), n=c.needs;
+    $('citNeeds').innerHTML=L('精力',n.energy)+L('饱腹',n.fullness)+L('社交',n.social)+L('娱乐',n.fun)+L('财富',n.money);
+  }
+  let panelT=0;
+  function updatePanel(dt){ if(selected&&$('cit').style.display!=='none'){ panelT+=dt; if(panelT>0.35){ panelT=0; fillPanel(); } } }
+
+  // ============ 真实地图建城 (OpenStreetMap / Overpass) ============
+  const M_SCALE=0.2, H_EXAG=2.0; let originLat=0, originLon=0, labelCount=0;
+  let roadNodes=new Map(), roadKeys=[], cars2=[], trafficObserved=0, transitTrains=[];
+  let crowdMesh=null, peds=[]; const AMB_CAP=1100, dummy=new THREE.Object3D();
+  function setOrigin(lat,lon){ originLat=lat; originLon=lon; }
+  function ll2local(lat,lon){ const mx=(lon-originLon)*111320*Math.cos(originLat*Math.PI/180), mz=(lat-originLat)*110540; return {x:mx*M_SCALE, z:-mz*M_SCALE}; }
+  function polyCentroid(g){ let x=0,z=0; for(const p of g){ const l=ll2local(p.lat,p.lon); x+=l.x; z+=l.z; } return {x:x/g.length, z:z/g.length}; }
+  function roundRect(c,x,y,w,h,r){ c.beginPath(); c.moveTo(x+r,y); c.arcTo(x+w,y,x+w,y+h,r); c.arcTo(x+w,y+h,x,y+h,r); c.arcTo(x,y+h,x,y,r); c.arcTo(x,y,x+w,y,r); c.closePath(); }
+  function makeLabel(text,x,y,z){ if(labelCount>=40||!text) return; labelCount++;
+    const cv=document.createElement('canvas'), ctx=cv.getContext('2d'); ctx.font='26px sans-serif'; const w=Math.ceil(ctx.measureText(text).width)+22; cv.width=w; cv.height=38;
+    ctx.font='26px sans-serif'; ctx.fillStyle='rgba(10,16,24,0.72)'; roundRect(ctx,0,0,w,38,9); ctx.fill(); ctx.fillStyle='#eaf4ff'; ctx.textBaseline='middle'; ctx.fillText(text,11,20);
+    const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthWrite:false})); sp.scale.set(w*0.05,1.9,1); sp.position.set(x,y+3,z); realGroup.add(sp); }
+  function bcat(t){ const a=t.amenity,b=t.building,s=t.shop;
+    if(s||a==='marketplace') return 'shop';
+    if(['restaurant','cafe','fast_food','bar','pub','food_court'].includes(a)) return 'food';
+    if(['school','university','college','kindergarten'].includes(a)) return 'school';
+    if(['hospital','clinic','doctors'].includes(a)) return 'hospital';
+    if(['commercial','office','retail','supermarket'].includes(b)) return 'com';
+    if(['industrial','warehouse','factory'].includes(b)) return 'ind';
+    return 'res'; }
+  function poiCat(t){ const a=t.amenity;
+    if(t.shop||a==='marketplace') return 'shop';
+    if(['restaurant','cafe','fast_food','bar','pub','food_court'].includes(a)) return 'food';
+    if(['park','garden'].includes(t.leisure)) return 'leisure';
+    return 'work'; }
+  function catColor(cat){ return ({res:0xb8a48a,com:0x6f86a8,ind:0x8a8580,hospital:0xeef2f5,school:0xd8a86a,shop:0xc99a6a,food:0xc98a6a}[cat])||0xb0b0b0; }
+
+  const OVERPASS=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter','https://maps.mail.ru/osm/tools/overpass/api/interpreter'];
+  async function fetchOSM(R){
+    const lat=data.lat, lon=data.lon;
+    const q=`[out:json][timeout:30];(way["building"](around:${R},${lat},${lon});way["highway"](around:${R},${lat},${lon});way["leisure"="park"](around:${R},${lat},${lon});way["railway"](around:${R},${lat},${lon});way["natural"="water"](around:${R},${lat},${lon});node["amenity"](around:${R},${lat},${lon});node["shop"](around:${R},${lat},${lon}););out geom 2500;`;
+    for(const ep of OVERPASS){
+      try{ const r=await fetch(ep,{method:'POST',body:'data='+encodeURIComponent(q)}); if(!r.ok) continue; const j=await r.json();
+        const buildings=[],roads=[],parksW=[],pois=[],rails=[],waterW=[];
+        for(const e of (j.elements||[])){
+          if(e.type==='way'&&e.geometry&&e.tags){ if(e.tags.building) buildings.push(e); else if(e.tags.highway) roads.push(e); else if(e.tags.leisure==='park') parksW.push(e); else if(e.tags.railway) rails.push(e); else if(e.tags.natural==='water') waterW.push(e); }
+          else if(e.type==='node'&&e.tags&&(e.tags.amenity||e.tags.shop)) pois.push(e);
+        }
+        if(buildings.length) return {buildings,roads,parksW,pois,rails,waterW};
+      }catch(e){}
+    }
+    return null;
+  }
+  function roadWidthM(hw){ return ({motorway:20,trunk:16,primary:13,secondary:10,tertiary:8,residential:6,living_street:5,service:4,footway:2.5,path:2,cycleway:2.5,pedestrian:4}[hw])||6; }
+  function buildRealRoads(roads){
+    const pos=[], y=0.07;
+    for(const r of roads){ const g=r.geometry; if(!g||g.length<2) continue; const w=roadWidthM(r.tags.highway)*M_SCALE;
+      for(let i=0;i<g.length-1;i++){ const a=ll2local(g[i].lat,g[i].lon), b=ll2local(g[i+1].lat,g[i+1].lon);
+        const dx=b.x-a.x, dz=b.z-a.z, len=Math.hypot(dx,dz)||1, nx=-dz/len*w/2, nz=dx/len*w/2;
+        pos.push(a.x+nx,y,a.z+nz, a.x-nx,y,a.z-nz, b.x+nx,y,b.z+nz,  a.x-nx,y,a.z-nz, b.x-nx,y,b.z-nz, b.x+nx,y,b.z+nz); } }
+    if(!pos.length) return; const geo=new THREE.BufferGeometry(); geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); geo.computeVertexNormals();
+    const m=new THREE.Mesh(geo, new THREE.MeshStandardMaterial({color:0x2c3038,roughness:0.95})); m.receiveShadow=true; realGroup.add(m);
+  }
+  // 路网图（用于行人寻路与车流）
+  function buildRoadGraph(roads){
+    roadNodes=new Map(); roadKeys=[];
+    const key=(x,z)=>Math.round(x)+','+Math.round(z);
+    const node=(x,z)=>{ const k=key(x,z); let n=roadNodes.get(k); if(!n){ n={x,z,adj:[]}; roadNodes.set(k,n); roadKeys.push(k); } return k; };
+    for(const r of roads){ const g=r.geometry; if(!g||g.length<2) continue; let prev=null;
+      for(const p of g){ const l=ll2local(p.lat,p.lon); const k=node(l.x,l.z);
+        if(prev&&prev!==k){ const a=roadNodes.get(prev),b=roadNodes.get(k); if(!a.adj.includes(k))a.adj.push(k); if(!b.adj.includes(prev))b.adj.push(prev); } prev=k; } }
+  }
+  function nearestNode(x,z){ let best=null,bd=1e18; for(const k of roadKeys){ const n=roadNodes.get(k); const d=(n.x-x)**2+(n.z-z)**2; if(d<bd){ bd=d; best=k; } } return best; }
+  function astar(s,g){ if(s===g) return [s]; const gn=roadNodes.get(g);
+    const open=[s], came={}, gsc={}, fsc={}, inOpen=new Set([s]); gsc[s]=0; fsc[s]=0; let iter=0;
+    while(open.length && iter++<4000){
+      let bi=0; for(let i=1;i<open.length;i++){ if((fsc[open[i]]??1e18)<(fsc[open[bi]]??1e18)) bi=i; }
+      const cur=open.splice(bi,1)[0]; inOpen.delete(cur);
+      if(cur===g){ const path=[cur]; let c=cur; while(came[c]!=null){ c=came[c]; path.unshift(c); } return path; }
+      const cn=roadNodes.get(cur);
+      for(const nb of cn.adj){ const nn=roadNodes.get(nb); const t=(gsc[cur]??1e18)+Math.hypot(nn.x-cn.x,nn.z-cn.z);
+        if(t<(gsc[nb]??1e18)){ came[nb]=cur; gsc[nb]=t; fsc[nb]=t+Math.hypot(nn.x-gn.x,nn.z-gn.z); if(!inOpen.has(nb)){ open.push(nb); inOpen.add(nb); } } } }
+    return null;
+  }
+  function roadPath(sx,sz,ex,ez){
+    if(!roadKeys.length) return [{x:ex,z:ez}];
+    const s=nearestNode(sx,sz), g=nearestNode(ex,ez); if(!s||!g) return [{x:ex,z:ez}];
+    const path=astar(s,g); if(!path) return [{x:ex,z:ez}];
+    const wp=path.map(k=>{ const n=roadNodes.get(k); return {x:n.x,z:n.z}; }); wp.push({x:ex,z:ez}); return wp;
+  }
+  // 车流：在真实路网上行驶 + 车距减速产生拥堵
+  function spawnTraffic(n){
+    cars2=[]; if(!roadKeys.length) return;
+    for(let i=0;i<n;i++){ const k=pick(roadKeys), nn=roadNodes.get(k); if(!nn.adj.length) continue;
+      const m=new THREE.Mesh(BOX, smat(new THREE.Color().setHSL(Math.random(),0.5,0.55),{metalness:0.3,roughness:0.5})); m.scale.set(1.1,0.5,2.1); m.castShadow=true;
+      const head=new THREE.Mesh(BOX, new THREE.MeshStandardMaterial({color:0xfff3c0,emissive:0xfff0b0,emissiveIntensity:0})); head.scale.set(0.9,0.16,0.18); head.position.set(0,0.12,0.42); m.add(head);
+      realGroup.add(m); cars2.push({mesh:m, head:head.material, from:k, to:pick(nn.adj), t:Math.random(), spd:rand(6,11), v:1}); }
+  }
+  function updateTraffic(dt){
+    if(!cars2.length) return; let slowed=0;
+    for(const c of cars2){ let a=roadNodes.get(c.from), b=roadNodes.get(c.to);
+      if(!a||!b){ c.from=pick(roadKeys); a=roadNodes.get(c.from); c.to=a&&a.adj.length?pick(a.adj):c.from; c.t=0; continue; }
+      const segLen=Math.hypot(b.x-a.x,b.z-a.z)||1;
+      let block=2; for(const o of cars2){ if(o===c||o.from!==c.from||o.to!==c.to) continue; const d=o.t-c.t; if(d>0&&d<0.13) block=Math.min(block,d/0.13); }
+      c.v += ((block<1?0.15:1)-c.v)*Math.min(1,3*dt); if(c.v<0.5) slowed++;
+      c.t += (c.spd*c.v*dt)/segLen;
+      if(c.t>=1){ c.t-=1; const bn=roadNodes.get(c.to), opts=bn.adj.filter(k=>k!==c.from); c.from=c.to; c.to=opts.length?pick(opts):pick(bn.adj); a=roadNodes.get(c.from); b=roadNodes.get(c.to); if(!a||!b) continue; }
+      const tt=clamp(c.t,0,1), x=a.x+(b.x-a.x)*tt, z=a.z+(b.z-a.z)*tt;
+      c.mesh.position.set(x,0.35,z); c.mesh.rotation.y=Math.atan2(b.x-a.x,b.z-a.z); c.head.emissiveIntensity=nightF*2; }
+    trafficObserved=slowed/cars2.length;
+  }
+  // 真实公交/轨道线（来自 OSM railway）
+  function buildTransit(rails){
+    transitTrains=[]; if(!rails||!rails.length) return;
+    const col=t=>({subway:0xff6a3d,light_rail:0xffaa3d,tram:0x3dd0ff,monorail:0xc06aff})[t]||0x9aa3ad;
+    let longest=null,longLen=0;
+    for(const r of rails){ const g=r.geometry; if(!g||g.length<2) continue; const c=col(r.tags.railway); const pos=[]; let len=0;
+      for(let i=0;i<g.length-1;i++){ const a=ll2local(g[i].lat,g[i].lon), b=ll2local(g[i+1].lat,g[i+1].lon); const dx=b.x-a.x,dz=b.z-a.z,L=Math.hypot(dx,dz)||1,nx=-dz/L*0.8,nz=dx/L*0.8;
+        pos.push(a.x+nx,0.18,a.z+nz,a.x-nx,0.18,a.z-nz,b.x+nx,0.18,b.z+nz, a.x-nx,0.18,a.z-nz,b.x-nx,0.18,b.z-nz,b.x+nx,0.18,b.z+nz); len+=L; }
+      if(!pos.length) continue; const geo=new THREE.BufferGeometry(); geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); geo.computeVertexNormals();
+      realGroup.add(new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color:c,emissive:c,emissiveIntensity:0.3,roughness:0.5})));
+      const pts=g.map(p=>{ const l=ll2local(p.lat,p.lon); return {x:l.x,z:l.z}; }); if(len>longLen){ longLen=len; longest={pts,c}; } }
+    if(longest && longest.pts.length>=2){ const tr=new THREE.Mesh(BOX,smat(longest.c,{emissive:longest.c,emissiveIntensity:0.4,metalness:0.4})); tr.scale.set(1.7,1.3,5); tr.castShadow=true; realGroup.add(tr);
+      transitTrains.push({mesh:tr, pts:longest.pts, i:0, t:0, dir:1, spd:16}); }
+  }
+  function updateTransit(dt){ for(const tn of transitTrains){ const pts=tn.pts; if(pts.length<2) continue;
+    let a=pts[tn.i], b=pts[tn.i+tn.dir]; if(!a||!b){ tn.dir*=-1; tn.i=clamp(tn.i,0,pts.length-1); continue; }
+    const L=Math.hypot(b.x-a.x,b.z-a.z)||1; tn.t+=tn.spd*dt/L;
+    while(tn.t>=1){ tn.t-=1; tn.i+=tn.dir; if(tn.i<=0){ tn.i=0; tn.dir=1; } else if(tn.i>=pts.length-1){ tn.i=pts.length-1; tn.dir=-1; } a=pts[tn.i]; b=pts[tn.i+tn.dir]||a; }
+    const x=a.x+(b.x-a.x)*tn.t, z=a.z+(b.z-a.z)*tn.t; tn.mesh.position.set(x,0.75,z); tn.mesh.rotation.y=Math.atan2(b.x-a.x,b.z-a.z); } }
+  // 实例化环境人群（上千路人，一次 draw call；沿真实路网行走）
+  function buildCrowdMesh(){
+    if(crowdMesh) return;
+    const body=new THREE.BoxGeometry(0.34,0.9,0.22); body.translate(0,0.55,0);
+    const head=new THREE.BoxGeometry(0.24,0.26,0.22); head.translate(0,1.18,0);
+    const geo=mergeGeometries([body,head]);
+    crowdMesh=new THREE.InstancedMesh(geo, new THREE.MeshStandardMaterial({roughness:0.85}), AMB_CAP);
+    crowdMesh.frustumCulled=false; crowdMesh.count=0; scene.add(crowdMesh);
+  }
+  function spawnCrowd(K){
+    buildCrowdMesh(); peds=[]; K=Math.min(K,AMB_CAP); const col=new THREE.Color();
+    for(let i=0;i<K;i++){ let a;
+      if(roadKeys.length){ const k=pick(roadKeys), nn=roadNodes.get(k); a={from:k,to:(nn.adj.length?pick(nn.adj):k),t:Math.random(),x:nn.x,z:nn.z,dir:0,speed:rand(1.6,3.4),phase:Math.random()*6}; }
+      else { const ang=Math.random()*6.28,r=Math.sqrt(Math.random())*56; a={x:Math.cos(ang)*r,z:Math.sin(ang)*r,tx:rand(-56,56),tz:rand(-56,56),dir:0,speed:rand(1.5,3),phase:Math.random()*6}; }
+      peds.push(a); col.setHSL(Math.random(),0.45,rand(0.42,0.62)); crowdMesh.setColorAt(i,col); }
+    crowdMesh.count=K; if(crowdMesh.instanceColor) crowdMesh.instanceColor.needsUpdate=true;
+  }
+  function updateCrowd(dt){
+    if(!crowdMesh||!peds.length||!crowdMesh.visible) return;
+    for(let i=0;i<peds.length;i++){ const a=peds[i];
+      if(a.from!=null && roadKeys.length){ let A=roadNodes.get(a.from),B=roadNodes.get(a.to);
+        if(!A||!B){ a.from=pick(roadKeys); A=roadNodes.get(a.from); a.to=(A.adj.length?pick(A.adj):a.from); a.t=0; B=roadNodes.get(a.to); }
+        const L=Math.hypot(B.x-A.x,B.z-A.z)||1; a.t+=a.speed*dt/L;
+        if(a.t>=1){ a.t-=1; const bn=roadNodes.get(a.to),opts=bn.adj.filter(k=>k!==a.from); a.from=a.to; a.to=(opts.length?pick(opts):pick(bn.adj)); A=roadNodes.get(a.from); B=roadNodes.get(a.to)||A; }
+        a.x=A.x+(B.x-A.x)*a.t; a.z=A.z+(B.z-A.z)*a.t; a.dir=Math.atan2(B.x-A.x,B.z-A.z);
+      } else { const dx=a.tx-a.x,dz=a.tz-a.z,d=Math.hypot(dx,dz); if(d<2){ a.tx=rand(-56,56); a.tz=rand(-56,56); } else { a.x+=dx/d*a.speed*dt; a.z+=dz/d*a.speed*dt; a.dir=Math.atan2(dx,dz); } }
+      a.phase+=dt*8; dummy.position.set(a.x, Math.abs(Math.sin(a.phase))*0.05, a.z); dummy.rotation.set(0,a.dir,0); dummy.scale.set(1,1,1); dummy.updateMatrix(); crowdMesh.setMatrixAt(i,dummy.matrix);
+    }
+    crowdMesh.instanceMatrix.needsUpdate=true;
+  }
+  function buildRealParks(parksW){
+    for(const p of parksW){ const g=p.geometry; if(!g||g.length<3) continue; const sh=new THREE.Shape();
+      g.forEach((q,i)=>{ const l=ll2local(q.lat,q.lon); i?sh.lineTo(l.x,-l.z):sh.moveTo(l.x,-l.z); });
+      let gm; try{ gm=new THREE.ShapeGeometry(sh); }catch(e){ continue; } gm.rotateX(-Math.PI/2);
+      const m=new THREE.Mesh(gm,smat(0x3f7f3a,{roughness:1})); m.position.y=0.05; m.receiveShadow=true; realGroup.add(m);
+      const c=polyCentroid(g); places.leisure.push({x:c.x,z:c.z,type:'leisure',name:(p.tags&&p.tags.name)||'公园'}); parks.push({x:c.x,z:c.z}); }
+  }
+  function buildRealWater(arr){ if(!arr) return;
+    for(const p of arr){ const g=p.geometry; if(!g||g.length<3) continue; const sh=new THREE.Shape();
+      g.forEach((q,i)=>{ const l=ll2local(q.lat,q.lon); i?sh.lineTo(l.x,-l.z):sh.moveTo(l.x,-l.z); });
+      let gm; try{ gm=new THREE.ShapeGeometry(sh); }catch(e){ continue; } gm.rotateX(-Math.PI/2);
+      const m=new THREE.Mesh(gm, new THREE.MeshStandardMaterial({color:0x2f6f9e,transparent:true,opacity:0.85,roughness:0.12,metalness:0.45})); m.position.y=0.09; m.receiveShadow=true; realGroup.add(m); }
+  }
+  function buildRealBuildings(arr){
+    arr.forEach(b=>{ b._c=polyCentroid(b.geometry); b._d=b._c.x*b._c.x+b._c.z*b._c.z; });
+    arr.sort((a,b)=>a._d-b._d); arr=arr.slice(0,420);
+    for(const b of arr){ const g=b.geometry; if(!g||g.length<3) continue; const t=b.tags||{};
+      const sh=new THREE.Shape(); g.forEach((p,i)=>{ const l=ll2local(p.lat,p.lon); i?sh.lineTo(l.x,-l.z):sh.moveTo(l.x,-l.z); });
+      let hm=parseFloat(t.height)||(parseFloat(t['building:levels'])*3)||rand(7,16); if(!isFinite(hm)||hm<=0) hm=8;
+      const h=Math.max(0.6, hm*M_SCALE*H_EXAG);
+      let geo; try{ geo=new THREE.ExtrudeGeometry(sh,{depth:h,bevelEnabled:false,steps:1}); }catch(e){ continue; } geo.rotateX(-Math.PI/2);
+      const cat=bcat(t), col=catColor(cat);
+      const mat=new THREE.MeshStandardMaterial({color:col,roughness:cat==='com'?0.45:0.8,metalness:cat==='com'?0.4:0.08,emissive:new THREE.Color(0xffd9a0),emissiveIntensity:0});
+      const m=new THREE.Mesh(geo,mat); m.castShadow=true; m.receiveShadow=true; realGroup.add(m);
+      const c=b._c, simType=(cat==='food'||cat==='shop')?'com':cat;
+      const bo={mesh:m,mat,plot:{x:c.x,z:c.z},w:4,curH:h,targetH:h,era:0,type:simType,realName:t.name||null,damaged:0,fixed:true};
+      buildings.push(bo);
+      const pl={x:c.x,z:c.z,name:t.name||null,b:bo};
+      if(cat==='res') places.home.push(Object.assign({type:'home'},pl));
+      else if(cat==='food') places.food.push(Object.assign({type:'food'},pl));
+      else if(cat==='shop') places.shop.push(Object.assign({type:'shop'},pl));
+      else places.work.push(Object.assign({type:'work'},pl));
+      if(t.name && (t.amenity||t.shop||cat!=='res')) makeLabel(t.name,c.x,h,c.z);
+    }
+  }
+  function addRealPOIs(pois){
+    for(const e of pois){ const t=e.tags, l=ll2local(e.lat,e.lon), cat=poiCat(t); const p={x:l.x,z:l.z,type:cat,name:t.name||null};
+      (places[cat]||places.work).push(p); if(t.name) makeLabel(t.name,l.x,1.5,l.z); }
+  }
+  function ensurePlaces(){
+    if(!places.home.length) places.home.push({x:0,z:0,type:'home'});
+    if(!places.work.length) places.work=places.home.slice();
+    if(!places.food.length) places.food=places.work.slice(0,5);
+    if(!places.shop.length) places.shop=places.work.slice(0,5);
+    if(!places.leisure.length) places.leisure=places.home.slice(0,5);
+  }
+  async function tryRealCity(){
+    $('loadnote').textContent='正在拉取真实地图(OpenStreetMap)…';
+    const osm=await fetchOSM(550);
+    if(!osm || osm.buildings.length<15){ logEv('真实地图数据不足，使用程序生成城市',''); return false; }
+    buildRealCity(osm); return true;
+  }
+  function buildRealCity(osm){
+    realMode=true; setOrigin(data.lat,data.lon); cityGroup.visible=false;
+    buildings.length=0; smokeEmitters.length=0; parks.length=0; plots.length=0; labelCount=0;
+    for(const k in places) places[k].length=0;
+    realGroup=new THREE.Group(); scene.add(realGroup); activeGroup=realGroup;
+    const gp=new THREE.Mesh(new THREE.PlaneGeometry(720,720), smat(0x37402f,{roughness:1})); gp.rotation.x=-Math.PI/2; gp.position.y=-0.02; gp.receiveShadow=true; realGroup.add(gp);
+    buildRealRoads(osm.roads); buildRoadGraph(osm.roads); buildRealParks(osm.parksW); buildRealWater(osm.waterW); buildRealBuildings(osm.buildings); addRealPOIs(osm.pois); buildTransit(osm.rails); ensurePlaces(); recountInfra(); spawnTraffic(26); buildGrid(); spawnCrowd(700);
+    if(peopleGroup){ while(peopleGroup.children.length) peopleGroup.remove(peopleGroup.children[0]); }
+    citizens.length=0; controlled=null; selected=null; if($('cit')) $('cit').style.display='none';
+    spawnCitizens(80);
+    const sc=sunLight.shadow.camera; sc.left=-150; sc.right=150; sc.top=150; sc.bottom=-150; sc.updateProjectionMatrix();
+    controls.target.set(0,4,0); camera.position.set(130,115,130);
+    logEv('🗺 已载入「'+data.city+'」真实地图：'+buildings.length+' 栋建筑 / '+places.home.length+' 户住宅','good');
+  }
+
+  // ============ 室内（可进入建筑） ============
+  let inside=false, interiorGroup=null, savedView=null, nearEnter=null;
+  const ENTERABLE=['home','food','shop','work'];
+  function nearestEnterable(){ if(!controlled) return null; let best=null,bd=30;
+    for(const t of ENTERABLE){ for(const p of places[t]){ const d=(p.x-controlled.x)**2+(p.z-controlled.z)**2; if(d<bd){ bd=d; best=p; } } } return best; }
+  function addBox(g,w,h,d,x,y,z,col){ const m=new THREE.Mesh(BOX,smat(col)); m.scale.set(w,h,d); m.position.set(x,y,z); m.castShadow=true; m.receiveShadow=true; g.add(m); return m; }
+  function interiorFurniture(type,W,D){ const g=interiorGroup;
+    if(type==='home'){ addBox(g,3,0.6,2,-W/2+2.5,0.4,-D/2+2,0x5a6b8a); addBox(g,3.2,0.25,2.2,-W/2+2.5,0.78,-D/2+2,0xdfe6ef); addBox(g,2,0.8,1,W/2-2.5,0.5,2,0x8a5a3a); addBox(g,2.6,0.7,1.1,0,0.4,D/2-3,0x6b8f6b); }
+    else if(type==='food'){ for(const x of [-4,0,4]){ addBox(g,1.4,0.55,1.4,x,0.4,1.5,0x9a6a4a); addBox(g,0.5,1,0.5,x,0.5,1.5,0x6a4a2a); } addBox(g,W-3,1,1,0,0.5,-D/2+1.5,0x5a4a3a); }
+    else if(type==='shop'){ for(const z of [-2.5,1.5]){ addBox(g,W-5,1.8,0.7,0,0.9,z,0xb0b6bd); } addBox(g,4,1,1.2,0,0.5,D/2-2.5,0x4a6a8a); }
+    else { for(const x of [-4,1]){ addBox(g,2.4,0.7,1.2,x,0.45,-1,0x4a5a6a); addBox(g,0.6,0.9,0.6,x,0.45,0.2,0x333a44); } } }
+  function buildInterior(place){
+    if(interiorGroup) scene.remove(interiorGroup);
+    interiorGroup=new THREE.Group(); scene.add(interiorGroup);
+    const type=place.type, W=16, D=12, wh=3.2, wc=0xe9e4db;
+    addBox(interiorGroup,W,0.2,D,0,0,0, type==='home'?0xbfa07a:type==='food'?0x9a7050:type==='shop'?0xcfc7ba:0xc2c8cc);
+    addBox(interiorGroup,W,wh,0.3,0,wh/2,-D/2,wc); addBox(interiorGroup,0.3,wh,D,-W/2,wh/2,0,wc); addBox(interiorGroup,0.3,wh,D,W/2,wh/2,0,wc);
+    addBox(interiorGroup,W/2-1.2,wh,0.3,-(W/4+0.6),wh/2,D/2,wc); addBox(interiorGroup,W/2-1.2,wh,0.3,W/4+0.6,wh/2,D/2,wc);
+    interiorFurniture(type,W,D);
+    interiorGroup.add(new THREE.HemisphereLight(0xfff2dc,0x6b5a44,1.7));
+    for(let i=0;i<2;i++){ const pr=makePerson(new THREE.Color().setHSL(Math.random(),0.4,0.5).getHex()); pr.group.position.set(rand(-W/3,W/3),0,rand(-1,D/3)); pr.group.rotation.y=rand(0,6.28); interiorGroup.add(pr.group); }
+  }
+  function enterInterior(place){
+    if(!place||!controlled) return; inside=true; buildInterior(place);
+    savedView={cx:camera.position.x,cy:camera.position.y,cz:camera.position.z, tx:controls.target.x,ty:controls.target.y,tz:controls.target.z, min:controls.minDistance,max:controls.maxDistance, px:controlled.x,pz:controlled.z, gv:cityGroup.visible, rv:realGroup?realGroup.visible:false};
+    cityGroup.visible=false; if(realGroup) realGroup.visible=false; peopleGroup.visible=false; if(crowdMesh) crowdMesh.visible=false;
+    controlled.x=0; controlled.z=4; interiorGroup.add(controlled.mesh); controlled.mesh.position.set(0,0,4);
+    controls.minDistance=4; controls.maxDistance=24; controls.target.set(0,1,0); camera.position.set(9,8,11);
+    logEv('🚪 走进了'+(place.name?('「'+place.name+'」'):'建筑'),'');
+  }
+  function exitInterior(){
+    if(!inside) return; inside=false;
+    if(peopleGroup) peopleGroup.add(controlled.mesh);
+    cityGroup.visible=savedView.gv; if(realGroup) realGroup.visible=savedView.rv; if(peopleGroup) peopleGroup.visible=true; if(crowdMesh) crowdMesh.visible=true;
+    if(interiorGroup){ scene.remove(interiorGroup); interiorGroup=null; }
+    controlled.x=savedView.px; controlled.z=savedView.pz; controlled.redecide=true;
+    controls.minDistance=savedView.min; controls.maxDistance=savedView.max; controls.target.set(savedView.tx,savedView.ty,savedView.tz); camera.position.set(savedView.cx,savedView.cy,savedView.cz);
+  }
+  function toggleInterior(){ if(inside) exitInterior(); else if(camMode==='ground'&&controlled&&nearEnter) enterInterior(nearEnter); }
+  function updateInterior(){
+    const ep=$('eprompt');
+    if(inside){ ep.style.display='block'; ep.textContent='[E] 离开'; return; }
+    if(camMode==='ground'&&controlled){ nearEnter=nearestEnterable();
+      if(nearEnter){ ep.style.display='block'; ep.textContent='[E] 进入'+(nearEnter.name?('「'+nearEnter.name+'」'):({home:'住宅',food:'餐厅',shop:'商店',work:'公司'}[nearEnter.type]||'建筑')); }
+      else ep.style.display='none';
+    } else { ep.style.display='none'; nearEnter=null; }
+  }
+
+  // ============ 系统空间化（污染扩散 / 地价 / 数据热力图） ============
+  const GRID=40, GSPAN=280;
+  let gPol=new Float32Array(GRID*GRID), gPol2=new Float32Array(GRID*GRID), gSrc=new Float32Array(GRID*GRID), gLand=new Float32Array(GRID*GRID);
+  let mapMode=0, mapMesh=null, mapTex=null, mapCtx=null, gridT=0;
+  const MAPMODES=['关闭','污染热力','地价'];
+  function w2cell(x,z){ const gx=Math.floor((x+GSPAN/2)/GSPAN*GRID), gz=Math.floor((z+GSPAN/2)/GSPAN*GRID); return (gx<0||gz<0||gx>=GRID||gz>=GRID)?-1:gz*GRID+gx; }
+  function buildGrid(){ gSrc.fill(0); gPol.fill(0);
+    for(const b of buildings){ const i=w2cell(b.plot.x,b.plot.z); if(i<0) continue;
+      if(b.type==='ind') gSrc[i]+=9; else if(b.type==='power') gSrc[i]+=(b.green?1:6); else if(b.type==='com') gSrc[i]+=1.6; else gSrc[i]+=0.5; }
+    for(const p of parks){ const i=w2cell(p.x,p.z); if(i>=0) gSrc[i]-=5; }
+  }
+  function stepGrid(){
+    for(let z=0;z<GRID;z++) for(let x=0;x<GRID;x++){ const i=z*GRID+x; let s=gPol[i]*0.5,n=0.5;
+      if(x+1<GRID){s+=gPol[i+1]*0.125;n+=0.125;} if(x>0){s+=gPol[i-1]*0.125;n+=0.125;}
+      if(z+1<GRID){s+=gPol[i+GRID]*0.125;n+=0.125;} if(z>0){s+=gPol[i-GRID]*0.125;n+=0.125;}
+      gPol2[i]=s/n; }
+    for(let i=0;i<GRID*GRID;i++){ gPol2[i]=clamp(gPol2[i]*0.95 + Math.max(0,gSrc[i])*0.7*(1-sim.green*0.7) + (gPol2[i]>0?sim.traffic*0.4:0) - Math.max(0,-gSrc[i])*0.6, 0, 100); }
+    const tmp=gPol; gPol=gPol2; gPol2=tmp;
+    for(let i=0;i<GRID*GRID;i++){ gLand[i]=clamp(55 - gPol[i]*0.55 + (gSrc[i]<0?22:0) + (sim.economy-100)*0.08, 0, 100); }
+  }
+  function ensureMapMesh(){ if(mapMesh) return;
+    const cv=document.createElement('canvas'); cv.width=cv.height=GRID; mapCtx=cv.getContext('2d');
+    mapTex=new THREE.CanvasTexture(cv); mapTex.minFilter=THREE.LinearFilter; mapTex.magFilter=THREE.LinearFilter;
+    mapMesh=new THREE.Mesh(new THREE.PlaneGeometry(GSPAN,GSPAN), new THREE.MeshBasicMaterial({map:mapTex,transparent:true,opacity:0.62,depthWrite:false}));
+    mapMesh.rotation.x=-Math.PI/2; mapMesh.position.y=0.45; mapMesh.visible=false; scene.add(mapMesh);
+  }
+  function updateMap(){
+    if(mapMode===0){ if(mapMesh) mapMesh.visible=false; return; }
+    ensureMapMesh(); mapMesh.visible=true;
+    const arr=mapMode===1?gPol:gLand, id=mapCtx.createImageData(GRID,GRID);
+    for(let i=0;i<GRID*GRID;i++){ const v=clamp(arr[i]/100,0,1); let r,g,b;
+      if(mapMode===1){ r=60+v*195; g=(1-v)*200; b=50; } else { r=40; g=v*220; b=(1-v)*190; }
+      id.data[i*4]=r; id.data[i*4+1]=g; id.data[i*4+2]=b; id.data[i*4+3]=160; }
+    mapCtx.putImageData(id,0,0); mapTex.needsUpdate=true;
+  }
+  function cycleMap(){ mapMode=(mapMode+1)%3; $('cMap').lastChild.textContent=MAPMODES[mapMode]; updateMap(); }
+
+  // ============ 程序化城市音效（WebAudio，无音频文件） ============
+  let audioCtx=null, audioOn=true, snd={};
+  function initAudio(){
+    if(audioCtx) return;
+    try{ audioCtx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return; }
+    const ctx=audioCtx, master=ctx.createGain(); master.gain.value=audioOn?0.5:0; master.connect(ctx.destination); snd.master=master;
+    const len=ctx.sampleRate*2, buf=ctx.createBuffer(1,len,ctx.sampleRate), d=buf.getChannelData(0); let last2=0;
+    for(let i=0;i<len;i++){ const w=Math.random()*2-1; last2=(last2+0.02*w)/1.02; d[i]=last2*3.2; } snd.buf=buf;
+    const noise=()=>{ const s=ctx.createBufferSource(); s.buffer=buf; s.loop=true; return s; };
+    const layer=(type,freq,Q,g)=>{ const gn=ctx.createGain(); gn.gain.value=g; const f=ctx.createBiquadFilter(); f.type=type; f.frequency.value=freq; if(Q)f.Q.value=Q; const s=noise(); s.connect(f); f.connect(gn); gn.connect(master); s.start(); return gn; };
+    snd.traffic=layer('lowpass',350,0,0);
+    snd.crowd=layer('bandpass',900,0.7,0);
+    snd.rain=layer('highpass',1300,0,0);
+    const pg=ctx.createGain(); pg.gain.value=0.05; pg.connect(master); snd.pad=pg;   // 轻氛围和弦
+    [110,164.81,220].forEach(fr=>{ const o=ctx.createOscillator(); o.type='sine'; o.frequency.value=fr; const og=ctx.createGain(); og.gain.value=0.33; o.connect(og); og.connect(pg); o.start(); });
+  }
+  function updateAudio(){
+    if(!audioCtx||audioCtx.state!=='running'||!snd.master) return; const t=audioCtx.currentTime;
+    const popF=clamp(Math.log10(Math.max(10,sim.population))/8,0,1);
+    const tr=clamp(0.03+popF*0.11+(cars2.length+peds.length)/4500,0,0.2);
+    snd.traffic.gain.setTargetAtTime(tr*(1-nightF*0.45),t,1.5);
+    snd.crowd.gain.setTargetAtTime(clamp(popF*0.08,0,0.1)*(1-nightF*0.6),t,1.5);
+    const raining=data.weather&&(data.weather.cat==='rain'||data.weather.cat==='storm');
+    snd.rain.gain.setTargetAtTime(raining?0.12:0,t,1.0);
+  }
+  function quakeSound(){
+    if(!audioCtx||audioCtx.state!=='running') return; const t=audioCtx.currentTime;
+    const rs=audioCtx.createBufferSource(); rs.buffer=snd.buf; const rf=audioCtx.createBiquadFilter(); rf.type='lowpass'; rf.frequency.value=120; const rg=audioCtx.createGain();
+    rg.gain.setValueAtTime(0.0,t); rg.gain.linearRampToValueAtTime(0.5,t+0.2); rg.gain.exponentialRampToValueAtTime(0.001,t+2.2); rs.connect(rf); rf.connect(rg); rg.connect(snd.master); rs.start(t); rs.stop(t+2.3);
+    const o=audioCtx.createOscillator(), g=audioCtx.createGain(); o.type='sawtooth'; o.frequency.setValueAtTime(440,t); o.frequency.linearRampToValueAtTime(880,t+0.6); o.frequency.linearRampToValueAtTime(440,t+1.2);
+    g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.12,t+0.1); g.gain.linearRampToValueAtTime(0,t+1.5); o.connect(g); g.connect(snd.master); o.start(t); o.stop(t+1.6);
+  }
+  function toggleAudio(){ audioOn=!audioOn; if(snd.master) snd.master.gain.setTargetAtTime(audioOn?0.5:0,audioCtx.currentTime,0.1); $('cSound').firstChild.textContent=audioOn?'🔊':'🔇'; if(audioCtx&&audioCtx.state==='suspended') audioCtx.resume(); }
+
+  // ============ 市民人生 / 生老病死 / 市库经营 ============
+  const LIFEGOALS=['买一套房','升职加薪','找到对象','开一家店','环游世界','成为名人'];
+  let lifeT=0;
+  function news(msg,cls){ logEv(msg,cls||''); }
+  function removeCitizen(i){ const c=citizens[i]; if(!c) return; if(c.mesh&&peopleGroup) peopleGroup.remove(c.mesh); if(selected===c){ selected=null; $('cit').style.display='none'; } citizens.splice(i,1); }
+  function spawnImmigrant(baby){ const before=citizens.length; spawnCitizens(1); if(citizens.length===before) return null; const c=citizens[citizens.length-1]; if(baby){ c.age=0; c.role='student'; c.job='孩童'; } return c; }
+  function maybeLifeGoal(c){ if(c.lifeDone) return; const n=c.needs; let ok;
+    if(c.lifeGoal==='买一套房'||c.lifeGoal==='开一家店') ok=n.money>85;
+    else if(c.lifeGoal==='找到对象') ok=c.met>=3&&n.social>70;
+    else if(c.lifeGoal==='升职加薪') ok=n.money>75&&c.age>30;
+    else if(c.lifeGoal==='环游世界') ok=n.money>80&&n.fun>75;
+    else ok=c.met>=6;
+    if(ok&&Math.random()<0.25){ c.lifeDone=true; c.needs.mood=clamp(c.needs.mood+25,0,100); news('🎉 '+c.name+' 实现了人生愿望：'+c.lifeGoal,'good'); remember(c,'实现了愿望：'+c.lifeGoal); } }
+  function cityYearTick(){
+    const income=buildings.length*8 + sim.economy*2 + 40;
+    const expense=buildings.length*5 + (sim.powerRatio<1?60:0) + infra.hospital*15 + infra.school*12;
+    sim.treasury+=(income-expense);
+    if(sim.treasury<0){ sim.happiness=clamp(sim.happiness-4,0,100); if(Math.random()<0.5) news('⚠️ 市库赤字，公共服务受影响','bad'); }
+    for(let i=citizens.length-1;i>=0;i--){ const c=citizens[i]; if(c===controlled) continue; c.age++;
+      const dp=c.age>70?(c.age-70)*0.012+0.004:0.0015;
+      if(Math.random()<dp){ news('🕯 '+c.name+'（'+c.age+'岁）安详离世'); removeCitizen(i);
+        if(Math.random()<0.6){ const b=spawnImmigrant(true); if(b) news('👶 新生命降生：'+b.name); } else { const m=spawnImmigrant(false); if(m) news('🌟 新市民迁入：'+m.name+'（'+m.job+'）'); } }
+      else maybeLifeGoal(c); } }
+
+  // ============ 目标 / 剧本 / 危机 ============
+  let goalBasePop=0;
+  const GOALS=[
+    { id:'livable', name:'宜居之城', desc:'30 年内让幸福度 ≥ 90', dur:30, check:s=>s.happiness>=90, prog:s=>'幸福度 '+Math.round(s.happiness)+' / 90' },
+    { id:'carbon',  name:'碳中和',   desc:'30 年内 污染≤10 且 清洁能源≥80%', dur:30, check:s=>s.pollution<=10&&s.green>=0.8, prog:s=>'污染 '+Math.round(s.pollution)+'/≤10 · 清洁 '+Math.round(s.green*100)+'%/80%' },
+    { id:'metro',   name:'大都会',   desc:'40 年内人口增长 50%', dur:40, check:s=>s.population>=goalBasePop*1.5, prog:s=>'人口 '+fmt(s.population)+' / '+fmt(goalBasePop*1.5) },
+    { id:'rich',    name:'繁荣经济', desc:'30 年内经济指数 ≥ 160', dur:30, check:s=>s.economy>=160, prog:s=>'经济 '+Math.round(s.economy)+' / 160' }
+  ];
+  let activeGoal=null, goalDeadline=0, goalDone=false, crisisT=0;
+  function openGoals(){ const l=$('goalList'); l.innerHTML=''; const make=(name,desc,fn)=>{ const d=document.createElement('div'); d.className='g'; d.innerHTML='<b>'+name+'</b><em>'+desc+'</em>'; d.onclick=fn; l.appendChild(d); };
+    for(const g of GOALS) make(g.name,g.desc,()=>setGoal(g));
+    make('自由模式','无目标，随心经营',()=>{ activeGoal=null; goalDone=false; updateGoalUI(); $('goals').style.display='none'; logEv('🎯 自由模式',''); });
+    $('goals').style.display=$('goals').style.display==='block'?'none':'block'; }
+  function setGoal(g){ activeGoal=g; goalDone=false; goalBasePop=sim.population; goalDeadline=sim.yearF+g.dur; logEv('🎯 新目标：'+g.name+' —— '+g.desc,'good'); toast('🎯 '+g.name); $('goals').style.display='none'; updateGoalUI(); }
+  function checkGoal(){ if(!activeGoal||goalDone) return;
+    if(activeGoal.check(sim)){ goalDone=true; const score=Math.round(sim.happiness+sim.economy*0.5+sim.green*40+Math.max(0,goalDeadline-sim.yearF)*2);
+      logEv('🎉 目标达成！「'+activeGoal.name+'」最终得分 '+score,'good'); toast('🎉 达成！得分 '+score); activeGoal=null; updateGoalUI(); }
+    else if(sim.yearF>goalDeadline){ logEv('⏰ 目标超时未达成：'+activeGoal.name,'bad'); toast('⏰ 目标失败'); activeGoal=null; goalDone=true; updateGoalUI(); } }
+  function updateGoalUI(){ const e=$('goalTracker'); if(!activeGoal){ e.style.display='none'; return; }
+    e.style.display='block'; e.innerHTML='🎯 '+activeGoal.name+'　<span style="opacity:.85;font-weight:400;font-size:12px">'+activeGoal.prog(sim)+' · 剩 '+Math.max(0,Math.ceil(goalDeadline-sim.yearF))+' 年</span>'; }
+  function triggerCrisis(){ const c=pick([
+      {n:'🔥 热浪来袭',f:()=>{ sim.happiness=clamp(sim.happiness-12,0,100); }},
+      {n:'📉 经济衰退',f:()=>{ sim.economy=clamp(sim.economy-25,20,400); }},
+      {n:'⚡ 电力紧张',f:()=>{ sim.powerRatio=clamp(sim.powerRatio-0.4,0,2); sim.happiness=clamp(sim.happiness-6,0,100); }},
+      {n:'🦠 公共卫生事件',f:()=>{ sim.health=clamp(sim.health-0.3,0,1.3); sim.happiness=clamp(sim.happiness-8,0,100); }} ]);
+    c.f(); logEv(c.n+'！注意应对','warn'); toast(c.n); }
+
+  // ============ 存档 / 分享 ============
+  let wantSnapshot=false;
+  function serializeState(){ return { v:1, ts:Date.now(), city:data.city, lat:data.lat, lon:data.lon, population:data.population,
+    sim:{ yearF:sim.yearF, population:sim.population, economy:sim.economy, tech:sim.tech, era:sim.era, pollution:sim.pollution, happiness:sim.happiness, green:sim.green, resilience:sim.resilience, popScale:sim.popScale } }; }
+  function saveLocal(){ try{ localStorage.setItem('datacity_save', JSON.stringify(serializeState())); logEv('💾 已保存「'+data.city+'」存档（演化 '+Math.floor(sim.yearF)+' 年）','good'); toast('已保存'); }catch(e){ logEv('保存失败：'+String(e).slice(0,40),'bad'); } }
+  async function loadLocal(){ let raw; try{ raw=localStorage.getItem('datacity_save'); }catch(e){}
+    if(!raw){ toast('没有存档'); logEv('没有找到本地存档','bad'); return; }
+    let s; try{ s=JSON.parse(raw); }catch(e){ logEv('存档损坏','bad'); return; }
+    logEv('📂 读取存档：'+s.city+'（演化 '+Math.floor(s.sim.yearF)+' 年）',''); toast('读取中…');
+    data.city=s.city; data.lat=s.lat; data.lon=s.lon; data.population=s.population||0;
+    const osm=await fetchOSM(550);
+    if(osm && osm.buildings.length>=15){ if(realGroup){ scene.remove(realGroup); realGroup=null; } realMode=false; buildRealCity(osm); }
+    Object.assign(sim, s.sim); sim.started=true; updateStats(); updateLive(); toast('已读取「'+s.city+'」'); }
+  function snapshot(){ wantSnapshot=true; }
+
+  // ============ 画质 / 性能档位 ============
+  let quality='高'; const QSET={'高':{pr:Math.min(devicePixelRatio,2),crowd:700},'中':{pr:1.1,crowd:350},'低':{pr:0.7,crowd:140}};
+  function cycleQuality(){ quality= quality==='高'?'中':quality==='中'?'低':'高'; const q=QSET[quality];
+    renderer.setPixelRatio(q.pr); renderer.setSize(innerWidth,innerHeight); if(composer) composer.setSize(innerWidth,innerHeight);
+    spawnCrowd(roadKeys.length?q.crowd:Math.min(q.crowd,250));
+    $('cQual').lastChild.textContent='画质'+quality; logEv('⚙️ 画质档位切到：'+quality,''); toast('画质 '+quality); }
+
+  // ============ GTA×MC 操作界面：化身层 HUD + 快捷栏放置建造 ============
+  const TOOLS=[ {k:'park',n:'公园',ic:'🌳'}, {k:'hospital',n:'医院',ic:'🏥'}, {k:'school',n:'学校',ic:'🎓'}, {k:'factory',n:'工厂',ic:'🏭'}, {k:'power',n:'电厂',ic:'⚡'}, {k:'wind',n:'风电',ic:'🍃'}, {t:'demolish',n:'拆除',ic:'⛏️'}, {t:'inspect',n:'检视',ic:'🔍'} ];
+  const BUILDCOST={park:300,hospital:800,school:600,factory:400,power:1000,wind:500};
+  let hotSel=0, creative=true, ghost=null, radarCtx=null, hudT=0, waypoint=null;
+  function renderHotbar(){ const hb=$('hotbar'); if(!hb) return; hb.innerHTML=''; TOOLS.forEach((t,i)=>{ const lk=toolLocked(t); const d=document.createElement('div'); d.className='slot'+(i===hotSel?' sel':'')+(lk?' lock':''); d.innerHTML='<span class="sk">'+(i+1)+'</span><span class="si">'+t.ic+'</span>'+(lk?'<span class="slk">🔒</span>':''); d.onclick=()=>selectTool(i); hb.appendChild(d); }); $('toolName').textContent=TOOLS[hotSel].n+(toolLocked(TOOLS[hotSel])?'（未解锁）':''); }
+  function selectTool(i){ hotSel=((i%TOOLS.length)+TOOLS.length)%TOOLS.length; renderHotbar(); updateGhost(); }
+  function curTool(){ return TOOLS[hotSel]; }
+  function ensureGhost(){ if(ghost) return; ghost=new THREE.Mesh(new THREE.BoxGeometry(4,4,4), new THREE.MeshBasicMaterial({color:0x5fd0ff,transparent:true,opacity:0.32,depthWrite:false})); ghost.visible=false; scene.add(ghost); }
+  function updateGhost(){ ensureGhost(); ghost.visible=(camMode==='ground'&&!!curTool().k); }
+  function groundPoint(){ const dir=new THREE.Vector3(); camera.getWorldDirection(dir); if(Math.abs(dir.y)<1e-4) return null; const tt=-camera.position.y/dir.y; if(tt<0||tt>700) return null; return { x:camera.position.x+dir.x*tt, z:camera.position.z+dir.z*tt }; }
+  const snap=v=>Math.round(v/5)*5;
+  function placeAt(kind,x,z){ if(LOCKERA[kind]!=null && sim.era<LOCKERA[kind]){ toast('🔒 科技未解锁（需近未来）'); return; }
+    const cost=creative?0:(BUILDCOST[kind]||300);
+    if(!creative && sim.treasury<cost){ toast('💰 市库不足'); return; }
+    const plot={x,z};
+    if(kind==='hospital') makeHospital(plot); else if(kind==='school') makeSchool(plot); else if(kind==='power') makePowerPlant(plot,sim.era>=2); else if(kind==='park') makePark(plot);
+    else if(kind==='factory'){ plot.zone='ind'; makeBuilding(plot); }
+    else if(kind==='wind'){ const g=new THREE.Group(); const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.25,0.4,12,8),smat(0xeeeeee)); pole.position.y=6; pole.castShadow=true; g.add(pole); const hub=new THREE.Group(); hub.position.set(0,12,0.5); for(let b=0;b<3;b++){ const bl=new THREE.Mesh(new THREE.BoxGeometry(0.3,7,0.6),smat(0xf4f4f4)); bl.position.y=3.5; const arm=new THREE.Group(); arm.add(bl); arm.rotation.z=b*Math.PI*2/3; hub.add(arm); } g.add(hub); g.position.set(x,0,z); activeGroup.add(g); turbines.push(hub); infra.wind++; sim.green=clamp(sim.green+0.03,0,0.98); }
+    if(!creative) sim.treasury-=cost; recountInfra(); updateStats(); toast('🧱 已建造：'+(curTool().n)); }
+  function demolishAt(x,z){ let best=-1,bd=40; for(let i=0;i<buildings.length;i++){ const b=buildings[i]; if(b.fixed&&b.type==='tower') continue; const d=(b.plot.x-x)**2+(b.plot.z-z)**2; if(d<bd){ bd=d; best=i; } }
+    if(best>=0){ const b=buildings[best]; if(b.mesh&&b.mesh.parent) b.mesh.parent.remove(b.mesh); if(b.chim&&b.chim.parent) b.chim.parent.remove(b.chim); buildings.splice(best,1); recountInfra(); updateStats(); toast('⛏️ 已拆除'); } else toast('附近无可拆建筑'); }
+  function tryPlaceOrDemolish(){ if(camMode!=='ground') return false; const t=curTool(); if(t.t==='inspect') return false;
+    const g=groundPoint(); if(!g) return true; const x=snap(g.x), z=snap(g.z); if(t.t==='demolish') demolishAt(x,z); else if(t.k) placeAt(t.k,x,z); return true; }
+  function drawRadar(){ if(!radarCtx){ const cv=$('radar'); if(!cv) return; radarCtx=cv.getContext('2d'); } const c=radarCtx, R=60, cx=60, cy=60;
+    c.clearRect(0,0,120,120); c.save(); c.beginPath(); c.arc(cx,cy,R,0,7); c.clip(); c.fillStyle='rgba(20,28,40,.5)'; c.fillRect(0,0,120,120);
+    const px=controlled?controlled.x:0, pz=controlled?controlled.z:0, S=R/55;
+    c.fillStyle='rgba(175,185,195,.5)'; for(let i=0;i<buildings.length;i+=2){ const b=buildings[i]; const dx=(b.plot.x-px)*S, dz=(b.plot.z-pz)*S; if(dx*dx+dz*dz<R*R) c.fillRect(cx+dx-1,cy+dz-1,2,2); }
+    c.fillStyle='rgba(120,224,255,.85)'; for(let i=0;i<citizens.length;i+=2){ const m=citizens[i]; const dx=(m.x-px)*S, dz=(m.z-pz)*S; if(dx*dx+dz*dz<R*R){ c.beginPath(); c.arc(cx+dx,cy+dz,1.5,0,7); c.fill(); } }
+    if(waypoint){ const dx=clamp((waypoint.x-px)*S,-R,R), dz=clamp((waypoint.z-pz)*S,-R,R); c.fillStyle='#ffd24a'; c.beginPath(); c.arc(cx+dx,cy+dz,3.2,0,7); c.fill(); }
+    c.restore(); const a=controlled?controlled.dir:0; c.save(); c.translate(cx,cy); c.rotate(-a); c.fillStyle='#fff'; c.beginPath(); c.moveTo(0,-6); c.lineTo(4.5,5); c.lineTo(-4.5,5); c.closePath(); c.fill(); c.restore();
+    c.strokeStyle='rgba(255,255,255,.3)'; c.lineWidth=2; c.beginPath(); c.arc(cx,cy,R-1,0,7); c.stroke(); }
+  function updateVitals(){ if(!controlled) return; const n=controlled.needs; $('vHp').style.width=Math.round(n.mood)+'%'; $('vSta').style.width=Math.round(n.energy)+'%'; $('vHun').style.width=Math.round(n.fullness)+'%'; $('vMoney').textContent='$'+fmt(Math.round(sim.treasury)); }
+  function toggleCreative(){ creative=!creative; $('modeTag').innerHTML='模式 <b>'+(creative?'创造':'生存')+'</b>'; toast((creative?'创造':'生存')+'模式'); }
+  function toggleView(){ if(camMode!=='ground'){ setMode('ground'); return; } const fp=controls.minDistance>2;
+    if(fp){ controls.minDistance=0.4; controls.maxDistance=3.2; controls.maxPolarAngle=Math.PI*0.85; toast('第一人称'); } else { controls.minDistance=4; controls.maxDistance=42; controls.maxPolarAngle=Math.PI*0.49; toast('第三人称'); } }
+  function applyHud(){ const ground=camMode==='ground', sh=(id,disp)=>{ const e=$(id); if(e) e.style.display=ground?disp:'none'; };
+    sh('radarWrap','block'); sh('vitals','flex'); sh('hotbar','flex'); sh('toolName','block'); sh('modeTag','block'); sh('crosshair','block');
+    for(const id of ['live','stats','console']){ const e=$(id); if(e) e.style.display=ground?'none':''; }
+    if(!ground&&driving){ driving=false; if(playerCar) playerCar.visible=false; if(controlled&&controlled.mesh) controlled.mesh.visible=true; }
+    controls.enableZoom=!ground; ensureGhost(); updateGhost(); if(ground) renderHotbar(); }
+
+  // ============ GTA 动作：驾驶 / 切换角色 / 动作轮盘 / 大地图 / 路点 ============
+  const LOCKERA={ wind:1, power:1 };
+  function toolLocked(t){ return t && t.k && LOCKERA[t.k]!=null && sim.era<LOCKERA[t.k]; }
+  let driving=false, playerCar=null, waypointBeacon=null;
+  function makeCar(){ const g=new THREE.Group(); const body=new THREE.Mesh(new THREE.BoxGeometry(2,0.8,4),smat(0x2a6fb0,{metalness:0.4,roughness:0.3})); body.position.y=0.7; body.castShadow=true; g.add(body); const cab=new THREE.Mesh(new THREE.BoxGeometry(1.8,0.7,2),smat(0x9fcdf0,{metalness:0.5,roughness:0.2})); cab.position.set(0,1.3,-0.2); g.add(cab); for(const dx of [-0.95,0.95]) for(const dz of [-1.4,1.4]){ const w=new THREE.Mesh(new THREE.CylinderGeometry(0.4,0.4,0.3,10),smat(0x111111)); w.rotation.z=Math.PI/2; w.position.set(dx,0.4,dz); g.add(w); } const hl=new THREE.Mesh(new THREE.BoxGeometry(1.7,0.2,0.2),new THREE.MeshStandardMaterial({color:0xfff3c0,emissive:0xfff0b0,emissiveIntensity:1.2})); hl.position.set(0,0.7,2.05); g.add(hl); return g; }
+  function toggleDrive(){ if(camMode!=='ground'||!controlled) return;
+    if(driving){ driving=false; if(playerCar) playerCar.visible=false; if(controlled.mesh) controlled.mesh.visible=true; toast('🚶 下车'); }
+    else { if(!playerCar){ playerCar=makeCar(); scene.add(playerCar); } playerCar.visible=true; playerCar.position.set(controlled.x,0,controlled.z); if(controlled.mesh) controlled.mesh.visible=false; driving=true; toast('🚗 上车 · WASD 驾驶 · F 下车'); } }
+  function switchCharacter(){ if(!citizens.length) return; const cx=controlled?controlled.x:0, cz=controlled?controlled.z:0; let best=null,bd=1e18;
+    for(const c of citizens){ if(c===controlled) continue; const d=(c.x-cx)**2+(c.z-cz)**2; if(d<bd){ bd=d; best=c; } }
+    if(best){ if(driving) toggleDrive(); if(controlled){ controlled.redecide=true; if(controlled.mesh) controlled.mesh.visible=true; } controlled=best; selected=best; if(camMode!=='ground') setMode('ground'); else controls.target.set(best.x,1.2,best.z); fillPanel(); $('cit').style.display='block'; toast('🔄 切换到 '+best.name+'（'+best.job+'）'); } }
+  function showWheel(){ if(camMode!=='ground'||$('wheel').style.display==='block') return;
+    const opts=[ {ic:'🛰',n:'上帝视角',f:()=>setMode('god')}, {ic:'🚗',n:driving?'下车':'上车',f:toggleDrive}, {ic:'🔄',n:'切换角色',f:switchCharacter}, {ic:'👁',n:'视角',f:toggleView}, {ic:'🗺',n:'大地图',f:toggleMap}, {ic:creative?'⛏':'🎨',n:creative?'生存':'创造',f:toggleCreative} ];
+    const w=$('wheel'); w.innerHTML=''; opts.forEach((o,i)=>{ const a=(i/opts.length)*Math.PI*2-Math.PI/2; const d=document.createElement('div'); d.className='wb'; d.style.left=(140+Math.cos(a)*108)+'px'; d.style.top=(140+Math.sin(a)*108)+'px'; d.innerHTML='<span class="wi">'+o.ic+'</span>'+o.n; d.onclick=()=>{ o.f(); hideWheel(); }; w.appendChild(d); }); w.style.display='block'; }
+  function hideWheel(){ $('wheel').style.display='none'; }
+  function setWaypoint(x,z){ waypoint={x,z}; if(!waypointBeacon){ waypointBeacon=new THREE.Mesh(new THREE.CylinderGeometry(1.6,1.6,46,14,1,true), new THREE.MeshBasicMaterial({color:0xffd24a,transparent:true,opacity:0.32,side:THREE.DoubleSide,depthWrite:false})); scene.add(waypointBeacon); } waypointBeacon.position.set(x,23,z); waypointBeacon.visible=true; toast('📍 已设置路点'); }
+  function toggleMap(){ const m=$('map'); if(getComputedStyle(m).display!=='none'){ m.style.display='none'; } else { m.style.display='flex'; drawMap(); } }
+  function drawMap(){ const cv=$('mapCanvas'),c=cv.getContext('2d'),W=520,span=300,S=W/span,w2m=(x,z)=>[W/2+x*S,W/2+z*S];
+    c.clearRect(0,0,W,W); c.fillStyle='rgba(20,28,40,.6)'; c.fillRect(0,0,W,W);
+    c.fillStyle='rgba(150,160,170,.5)'; for(let i=0;i<buildings.length;i++){ const [mx,my]=w2m(buildings[i].plot.x,buildings[i].plot.z); c.fillRect(mx-1,my-1,2,2); }
+    c.fillStyle='rgba(95,224,160,.85)'; for(const p of parks){ const [mx,my]=w2m(p.x,p.z); c.fillRect(mx-2,my-2,4,4); }
+    c.fillStyle='rgba(120,224,255,.7)'; for(let i=0;i<citizens.length;i+=3){ const [mx,my]=w2m(citizens[i].x,citizens[i].z); c.beginPath(); c.arc(mx,my,1.5,0,7); c.fill(); }
+    if(waypoint){ const [mx,my]=w2m(waypoint.x,waypoint.z); c.fillStyle='#ffd24a'; c.beginPath(); c.arc(mx,my,5,0,7); c.fill(); }
+    if(controlled){ const [mx,my]=w2m(controlled.x,controlled.z); c.fillStyle='#fff'; c.beginPath(); c.arc(mx,my,4,0,7); c.fill(); c.strokeStyle='rgba(255,255,255,.6)'; c.lineWidth=2; c.beginPath(); c.arc(mx,my,8,0,7); c.stroke(); } }
+
+  // ============ 主循环 ============
+  let last=performance.now(), statT=0, liveT=0;
+  function loop(now){
+    requestAnimationFrame(loop);
+    const dt=Math.min(0.05,(now-last)/1000); last=now;
+    updateSky(dt*360);
+
+    for(const b of buildings){ if(Math.abs(b.curH-b.targetH)>0.02){ b.curH=lerp(b.curH,b.targetH,Math.min(1,3*dt)); b.mesh.scale.y=b.curH; b.mesh.position.y=b.curH/2; if(b.chim){ b.chim.scale.y=Math.max(0.01,b.curH*0.55); b.chim.position.y=b.curH*0.55/2; } }
+      b.mat.emissiveIntensity=nightF*(0.45+b.era*0.32); if(b.damaged>0&&sim.started) b.damaged=Math.max(0,b.damaged-dt*0.04); }
+
+    // 地面车流
+    for(const c of cars){} // (静态街道车流由高架代表)
+    for(const c of hwCars){ c.t=(c.t+c.dir*c.spd*dt+1)%1; const [x,z]=hwPos(c.t,c.R); const [nx,nz]=hwPos(c.t+0.01*c.dir,c.R);
+      c.mesh.position.set(x,c.y+0.5,z); c.mesh.rotation.y=Math.atan2(nx-x,nz-z); c.head.emissiveIntensity=nightF*2; }
+    for(const t of trains){ t.x+=t.spd*dt; if(t.x>(SPAN+90)/2) t.x=-(SPAN+90)/2; t.grp.position.x=t.x; for(const w of t.wins) w.emissiveIntensity=nightF*1.8; }
+    for(const p of planes){ p.ang+=p.spd*dt; p.grp.position.set(Math.cos(p.ang)*p.R, p.alt+Math.sin(p.ang*2)*3, Math.sin(p.ang)*p.R); p.grp.rotation.y=-p.ang; }
+    for(const h of turbines) h.rotation.z+=dt*1.2;
+    for(const cl of clouds){ cl.position.x+=cl.userData.spd*dt; if(cl.position.x>160){ cl.position.x=-160; cl.position.z=rand(-150,150); } }
+    animateFall(rain,55*dt); animateFall(snow,9*dt,true); updateSmoke(dt); updateTraffic(dt); updateTransit(dt); updateCrowd(dt);
+
+    if(streetBulbMat) streetBulbMat.emissiveIntensity=nightF*1.6;
+    const blink=(Math.sin(now*0.004)>0)?1.6:0.2; for(const m of blinkers) m.emissiveIntensity=blink;
+
+    if(sim.quakeShake>0){ sim.quakeShake=Math.max(0,sim.quakeShake-dt*1.5); const s=sim.quakeShake; camera.position.x+=rand(-s,s)*0.5; camera.position.y+=rand(-s,s)*0.3; }
+
+    if(sim.started&&sim.running){ simTick(dt*sim.speed*0.3); statT+=dt; if(statT>0.25){ statT=0; updateStats(); } }
+    liveT+=dt; if(liveT>1){ liveT=0; if(sim.started) $('vTime').textContent=new Date().toLocaleTimeString('zh-CN'); updateAudio(); }
+    if(toastT>0){ toastT-=dt; if(toastT<=0) $('toast').style.opacity='0'; }
+    if(riverWater){ const p=riverWater.geometry.attributes.position, a=p.array, t=now/1000; for(let i=1;i<a.length;i+=3){ a[i]=Math.sin(riverBase[i-1]*0.2+t*1.4)*0.12; } p.needsUpdate=true; }
+
+    if(citizens.length){ updateCitizens(dt); updateControlled(dt); updatePanel(dt); socialT+=dt; if(socialT>=1){ socialT=0; socialTick(); } updateBubbles(dt); if(recentQuake>0) recentQuake-=dt; }
+    updateCameraMode(dt); updateInterior();
+    if(camMode==='ground'){ hudT+=dt; if(hudT>0.12){ hudT=0; drawRadar(); updateVitals(); } if(ghost&&ghost.visible){ const gp=groundPoint(); if(gp) ghost.position.set(snap(gp.x),2,snap(gp.z)); } }
+    if(waypoint&&controlled&&(waypoint.x-controlled.x)**2+(waypoint.z-controlled.z)**2<25){ waypoint=null; if(waypointBeacon) waypointBeacon.visible=false; toast('📍 已到达路点'); }
+    if(waypointBeacon&&waypointBeacon.visible) waypointBeacon.rotation.y+=dt;
+    gridT+=dt; if(gridT>=0.4){ gridT=0; if(sim.started) stepGrid(); updateMap(); }
+    controls.update(); composer.render();
+    if(wantSnapshot){ wantSnapshot=false; try{ const a=document.createElement('a'); a.href=renderer.domElement.toDataURL('image/png'); a.download='数据城市-'+data.city+'.png'; a.click(); logEv('📷 已保存城市快照 PNG','good'); toast('📷 已保存快照'); }catch(e){ logEv('快照失败','bad'); } }
+  }
+  function animateFall(pts,d,drift){ if(!pts.visible)return; const a=pts.geometry.attributes.position.array;
+    for(let i=1;i<a.length;i+=3){ a[i]-=d; if(drift)a[i-1]+=Math.sin(a[i]*0.1)*0.02; if(a[i]<0){ a[i]=80; a[i-1]=rand(-70,70); a[i+1]=rand(-70,70); } } pts.geometry.attributes.position.needsUpdate=true; }
+  function onResize(){ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth,innerHeight); if(composer) composer.setSize(innerWidth,innerHeight); }
+
+  try{ init(); }catch(e){ console.error(e); const el=$('err'); if(el)el.style.display='flex'; }
+  </script>
+</body>
+</html>

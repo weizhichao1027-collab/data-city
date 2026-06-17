@@ -1,0 +1,11 @@
+# 旧的 2D 实验文件（不公开）
+future-world-*.html
+_*.js
+test_engine*.js
+*.backup.html
+# 本地配置 / 系统文件
+.claude/
+.DS_Store
+
+# 第三方/无关文件
+*.pdf
