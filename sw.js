@@ -1,7 +1,7 @@
 // Data City PWA Service Worker — offline app shell + 3D engine; live data & HTML try network first
 const CACHE = 'datacity-v2';
 const CORE = [
-  './', './index.html', './city.html', './explore.html',
+  './', './index.html', './city.html',
   './manifest.webmanifest', './icon-192.png', './icon-512.png',
   'https://unpkg.com/three@0.160.0/build/three.module.js'
 ];
