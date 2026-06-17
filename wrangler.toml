@@ -1,0 +1,6 @@
+name = "data-city"
+compatibility_date = "2024-11-01"
+
+# 纯静态站点：直接把仓库目录作为静态资源发布（无 Worker 代码）
+[assets]
+directory = "./"
