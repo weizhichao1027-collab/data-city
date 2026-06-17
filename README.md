@@ -1,8 +1,8 @@
 # 模拟世界 · Simulated World
 
-> 🌐 **在线体验**（两处都由本仓库自动部署，`git push` 即更新）：
-> - **Cloudflare（推荐，国内更可达）**：<https://data-city.weizhichao1027.workers.dev>
-> - **GitHub Pages**：<https://weizhichao1027-collab.github.io/data-city/>
+> 🌐 **在线体验**（两处都由本仓库 `git push` 自动部署）：
+> - **Cloudflare Pages（主）**：<https://data-city.pages.dev>　（原子部署、自带网页分析、可加后端 Functions）
+> - **GitHub Pages（备用）**：<https://weizhichao1027-collab.github.io/data-city/>
 >
 > 📱 **可安装为 app（PWA）**：用手机/电脑浏览器打开上面的地址 →
 > - **安卓 / Chrome / Edge**：地址栏或菜单里点「安装/添加到主屏幕」
